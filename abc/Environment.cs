@@ -8,7 +8,7 @@ namespace fluid_simulation
         public int boundary_len = Program.WINDOW_WIDTH * 2 + Program.WINDOW_HEIGHT * 2 + 4;
 
         public GasParticle[] particles;
-        const int Walldensity = 5;
+        const int Walldensity = 20;
 
         public Environment(int particleAmount)
         {
@@ -65,8 +65,10 @@ namespace fluid_simulation
 
                     double f_xy = particles[i].interaction(dist);
 
-                    sumX += -sx * f_xy * 0.001;
-                    sumY += -sy * f_xy * 0.001;
+                    double multiplier = 0.0001;
+
+                    sumX += -sx * f_xy * multiplier;
+                    sumY += -sy * f_xy * multiplier;
 
                     //Console.WriteLine(sumX);
                 }
