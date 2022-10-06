@@ -21,7 +21,7 @@ namespace fluid_simulation
             //particles
             for (; i < particleAmount; i++)
             {
-                particles[i] = new GasParticle(rng.NextDouble(), rng.NextDouble(), 50);
+                particles[i] = new GasParticle(rng.NextDouble() / 2, rng.NextDouble(), 30);
             }
 
             MakeBoundary(i);
@@ -41,7 +41,7 @@ namespace fluid_simulation
 
         public void Attract()
         {
-            for (int i = 0; i < particles.Length - boundary_len; i++)
+            Parallel.For(0, particles.Length - boundary_len, i =>
             {
                 double sumX = 0, sumY = 0;
                 for (int j = 0; j < particles.Length; j++)
@@ -73,7 +73,7 @@ namespace fluid_simulation
 
                 particles[i].vx += sumX;
                 particles[i].vy += sumY;
-            }
+            });
         }
 
         public void MakeBoundary(int i)

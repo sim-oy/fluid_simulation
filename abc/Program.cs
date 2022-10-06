@@ -22,7 +22,7 @@ namespace fluid_simulation
             //Console.WriteLine(x_pixel * 1920);
             //Console.WriteLine(y_pixel * 1080);
 
-            Environment env = new Environment(1000);
+            Environment env = new Environment(5000);
 
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
@@ -51,7 +51,7 @@ namespace fluid_simulation
                 DrawEnvironment(env);
                 Console.WriteLine("drawn");
                 //windowTexture.Update(windowBuffer);
-                window.Draw(windowSprite);
+                //window.Draw(windowSprite);
                 window.Display();
             }
         }
@@ -88,10 +88,12 @@ namespace fluid_simulation
         {
             int resolution_x = 50;
             int resolution_y = 50;
-            int colorContrast = 2;
+            int colorContrast = 5;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
+
+            int visibleAmount = 0;
 
             for (int y = 0; y < resolution_y; y++)
             {
@@ -112,7 +114,9 @@ namespace fluid_simulation
                             particle.y * (double)resolution_y < (double)(y) ||
                             particle.y * (double)resolution_y >= (double)(y + 1))
                             continue;
+
                         squareAmount += 1;
+                        visibleAmount += 1;
                     }
 
                     byte colorshade = (byte)(255 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
@@ -120,6 +124,7 @@ namespace fluid_simulation
                     window.Draw(square);
                 }
             }
+            Console.WriteLine(visibleAmount);
         }
 
         static void OnClose(object sender, EventArgs e)
