@@ -22,7 +22,7 @@ namespace fluid_simulation
             //Console.WriteLine(x_pixel * 1920);
             //Console.WriteLine(y_pixel * 1080);
 
-            Environment env = new Environment(100);
+            Environment env = new Environment(1000);
 
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
@@ -35,16 +35,21 @@ namespace fluid_simulation
 
             Sprite windowSprite = new Sprite(windowTexture);
 
+            Console.WriteLine("init complete");
+
             while (window.IsOpen)
             {
                 window.DispatchEvents();
 
                 env.Attract();
+                Console.WriteLine("calculated");
                 env.Move();
+                Console.WriteLine("moved");
 
                 window.Clear();
                 //windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
                 DrawEnvironment(env);
+                Console.WriteLine("drawn");
                 //windowTexture.Update(windowBuffer);
                 window.Draw(windowSprite);
                 window.Display();
@@ -81,8 +86,8 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environment env)
         {
-            int resolution_x = 125;
-            int resolution_y = 125;
+            int resolution_x = 100;
+            int resolution_y = 100;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
@@ -101,15 +106,15 @@ namespace fluid_simulation
                         if (particle.x < 0 || particle.x >= 1.0 || particle.y < 0 || particle.y >= 1.0)
                             continue;
 
-                        if (particle.x * (double)resolution_pixel_x < x * resolution_pixel_x ||
-                            particle.x * (double)resolution_pixel_x >= x * resolution_pixel_x + resolution_pixel_x ||
-                            particle.y * (double)resolution_pixel_y < y * resolution_pixel_y ||
-                            particle.y * (double)resolution_pixel_y >= y * resolution_pixel_y + resolution_pixel_y)
+                        if (particle.x * (double)resolution_x < (double)(x * resolution_pixel_x) ||
+                            particle.x * (double)resolution_x >= (double)(x * resolution_pixel_x + resolution_pixel_x) ||
+                            particle.y * (double)resolution_y < (double)(y * resolution_pixel_y) ||
+                            particle.y * (double)resolution_y >= (double)(y * resolution_pixel_y + resolution_pixel_y))
                             continue;
                         squareAmount += 1;
                     }
 
-                    byte colorshade = (byte)(255 * (squareAmount > 50 ? (50 / squareAmount) : 1));
+                    byte colorshade = (byte)(255 * (squareAmount >= 50 ? 1 : ((double)squareAmount / (double)50)));
                     square.FillColor = new Color(colorshade, colorshade, colorshade);
                     window.Draw(square);
                 }
