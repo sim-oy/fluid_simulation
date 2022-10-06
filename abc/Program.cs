@@ -119,17 +119,22 @@ namespace fluid_simulation
                         visibleAmount += 1;
                     }
 
+                    
                     int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
-                    int Red = colorshade <= 510 ? 0 : (colorshade >= 765 ? 255 : colorshade - 510);
-                    int Green = colorshade <= 255 ? colorshade : (colorshade < 765 ? 255 : 255 - (colorshade - 765));
-                    int Blue = colorshade <= 255 ? 255 : (255 - (colorshade - 255) < 0 ? 0 : 255 - (colorshade - 255));
 
-
-                    square.FillColor = new Color((byte)Red, (byte)Green, (byte)Blue);
+                    square.FillColor = _1020toRGBscaleColor(colorshade);
                     window.Draw(square);
                 }
             }
             Console.WriteLine(visibleAmount);
+        }
+
+        static Color _1020toRGBscaleColor(int colorshade)
+        {
+            int Red = colorshade <= 510 ? 0 : (colorshade >= 765 ? 255 : colorshade - 510);
+            int Green = colorshade <= 255 ? colorshade : (colorshade < 765 ? 255 : 255 - (colorshade - 765));
+            int Blue = colorshade <= 255 ? 255 : (255 - (colorshade - 255) < 0 ? 0 : 255 - (colorshade - 255));
+            return new Color((byte)Red, (byte)Green, (byte)Blue);
         }
 
         static void OnClose(object sender, EventArgs e)
