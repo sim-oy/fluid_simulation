@@ -86,8 +86,9 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environment env)
         {
-            int resolution_x = 100;
-            int resolution_y = 100;
+            int resolution_x = 50;
+            int resolution_y = 50;
+            int colorContrast = 2;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
@@ -96,9 +97,9 @@ namespace fluid_simulation
             {
                 for (int x = 0; x < resolution_x; x++)
                 {
-                    RectangleShape square = new RectangleShape();
+                    RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
                     square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
-                    square.Size = new Vector2f(resolution_pixel_x, resolution_pixel_y);
+                    //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
 
                     int squareAmount = 0;
                     foreach (GasParticle particle in env.particles)
@@ -106,15 +107,15 @@ namespace fluid_simulation
                         if (particle.x < 0 || particle.x >= 1.0 || particle.y < 0 || particle.y >= 1.0)
                             continue;
 
-                        if (particle.x * (double)resolution_x < (double)(x * resolution_pixel_x) ||
-                            particle.x * (double)resolution_x >= (double)(x * resolution_pixel_x + resolution_pixel_x) ||
-                            particle.y * (double)resolution_y < (double)(y * resolution_pixel_y) ||
-                            particle.y * (double)resolution_y >= (double)(y * resolution_pixel_y + resolution_pixel_y))
+                        if (particle.x * (double)resolution_x < (double)(x) ||
+                            particle.x * (double)resolution_x >= (double)(x + 1) ||
+                            particle.y * (double)resolution_y < (double)(y) ||
+                            particle.y * (double)resolution_y >= (double)(y + 1))
                             continue;
                         squareAmount += 1;
                     }
 
-                    byte colorshade = (byte)(255 * (squareAmount >= 50 ? 1 : ((double)squareAmount / (double)50)));
+                    byte colorshade = (byte)(255 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
                     square.FillColor = new Color(colorshade, colorshade, colorshade);
                     window.Draw(square);
                 }
