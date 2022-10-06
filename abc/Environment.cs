@@ -5,7 +5,8 @@ namespace fluid_simulation
 {
     class Environment
     {
-        public int boundary_len = Program.WINDOW_WIDTH * 2 + Program.WINDOW_HEIGHT * 2 + 4;
+        //public int boundary_len = Program.WINDOW_WIDTH * 2 + Program.WINDOW_HEIGHT * 2 + 4;
+        public int boundary_len = 0;
 
         public GasParticle[] particles;
         const int Walldensity = 20;
@@ -13,7 +14,8 @@ namespace fluid_simulation
         public Environment(int particleAmount)
         {
 
-            particles = new GasParticle[particleAmount + Program.WINDOW_WIDTH * Walldensity * 2 + Program.WINDOW_HEIGHT * Walldensity * 2 + 4];
+            //particles = new GasParticle[particleAmount + Program.WINDOW_WIDTH * Walldensity * 2 + Program.WINDOW_HEIGHT * Walldensity * 2 + 4];
+            particles = new GasParticle[particleAmount];
 
             Random rng = new Random();
 
@@ -24,7 +26,7 @@ namespace fluid_simulation
                 particles[i] = new GasParticle(rng.NextDouble() / 2, rng.NextDouble(), 30);
             }
 
-            MakeBoundary(i);
+            //MakeBoundary(i);
 
             //particles[particleAmount] = new GasParticle(0, 0, 0.0000001);
         }
@@ -70,11 +72,23 @@ namespace fluid_simulation
                     sumX += -sx * f_xy * multiplier;
                     sumY += -sy * f_xy * multiplier;
 
-                    //Console.WriteLine(sumX);
+                    if (particles[i].x < 0 || particles[i].x >= 1.0 || particles[i].y < 0 || particles[i].y >= 1.0)
+                        continue;
+
                 }
 
                 particles[i].vx += sumX;
                 particles[i].vy += sumY;
+
+                //boundary
+                if (particles[i].x < 0)
+                    particles[i].vx = Math.Abs(particles[i].vx);
+                else if (particles[i].x > 1.0)
+                    particles[i].vx = -Math.Abs(particles[i].vx);
+                else if (particles[i].y < 0)
+                    particles[i].vy = Math.Abs(particles[i].vy);
+                else if (particles[i].y > 1.0)
+                    particles[i].vy = -Math.Abs(particles[i].vy);
             });
         }
 

@@ -69,7 +69,7 @@ namespace fluid_simulation
                 circ.Position = new Vector2f((float)(particle.x * WINDOW_WIDTH), (float)(particle.y * WINDOW_HEIGHT));
                 circ.FillColor = new Color(0xff, 0xff, 0xff);
                 window.Draw(circ);*/
-                if (particle.x < 0 || particle.x >= 1.0 || particle.y < 0 || particle.y >= 1.0)
+                if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
                     continue;
 
                 int x = (int)(particle.x * WINDOW_WIDTH);
@@ -106,7 +106,7 @@ namespace fluid_simulation
                     int squareAmount = 0;
                     foreach (GasParticle particle in env.particles)
                     {
-                        if (particle.x < 0 || particle.x >= 1.0 || particle.y < 0 || particle.y >= 1.0)
+                        if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
                             continue;
 
                         if (particle.x * (double)resolution_x < (double)(x) ||
