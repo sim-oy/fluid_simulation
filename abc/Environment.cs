@@ -19,12 +19,20 @@ namespace fluid_simulation
 
             Random rng = new Random();
 
-            int i = 0;
             //particles
+            for (int y = 0; y < Math.Sqrt(particleAmount); y++)
+            {
+                for (int x = 0; x < Math.Sqrt(particleAmount); x++)
+                {
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(x / Math.Sqrt(particleAmount) * 0.1, y / Math.Sqrt(particleAmount) * 0.1, 30);
+                }
+            }
+            /*
             for (; i < particleAmount; i++)
             {
                 particles[i] = new GasParticle(rng.NextDouble() * 0.1, rng.NextDouble() * 0.1, 30);
             }
+            */
 
             //MakeBoundary(i);
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Drawing;
 using Color = SFML.Graphics.Color;
+using System.Diagnostics;
 
 namespace fluid_simulation
 {
@@ -13,6 +14,9 @@ namespace fluid_simulation
     {
         public const int WINDOW_WIDTH = 500;
         public const int WINDOW_HEIGHT = 500;
+
+        public const int FPS_LIMIT = 200;
+        public static long FRAMETIME = 1000 / FPS_LIMIT;
 
         private static RenderWindow window;
         private static byte[] windowBuffer;
@@ -22,7 +26,7 @@ namespace fluid_simulation
             //Console.WriteLine(x_pixel * 1920);
             //Console.WriteLine(y_pixel * 1080);
 
-            Environment env = new Environment(10000);
+            Environment env = new Environment(3600);
 
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
@@ -41,8 +45,12 @@ namespace fluid_simulation
 
             if (DrawStyle == 1)
             {
+                long elapsed_time = 0;
                 while (window.IsOpen)
                 {
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
+
                     window.DispatchEvents();
 
                     env.Attract();
@@ -57,6 +65,18 @@ namespace fluid_simulation
                     windowTexture.Update(windowBuffer);
                     window.Draw(windowSprite);
                     window.Display();
+
+                    stopwatch.Stop();
+                    elapsed_time = stopwatch.ElapsedMilliseconds;
+
+                    if (elapsed_time < FRAMETIME)
+                    {
+                        System.Threading.Thread.Sleep((int)(FRAMETIME - elapsed_time));
+                    }
+                    else if (elapsed_time > 2000.0)
+                    {
+                        Console.WriteLine(elapsed_time * 1000);
+                    }
                 }
             } 
             else if (DrawStyle == 2)
@@ -116,9 +136,9 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environment env)
         {
-            int resolution_x = 50;
-            int resolution_y = 50;
-            int colorContrast = 5;
+            int resolution_x = 25;
+            int resolution_y = 25;
+            int colorContrast = 10;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
