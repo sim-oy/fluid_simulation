@@ -26,7 +26,7 @@ namespace fluid_simulation
             //Console.WriteLine(x_pixel * 1920);
             //Console.WriteLine(y_pixel * 1080);
 
-            Environment env = new Environment(3600);
+            Environment env = new Environment(10000);
 
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
@@ -136,46 +136,94 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environment env)
         {
+            int drawType = 1;
+
             int resolution_x = 25;
             int resolution_y = 25;
-            int colorContrast = 10;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
 
             int visibleAmount = 0;
 
-            for (int y = 0; y < resolution_y; y++)
+            if (drawType == 1)
             {
-                for (int x = 0; x < resolution_x; x++)
+                int colorContrast = 1 / 25;
+
+                for (int y = 0; y < resolution_y; y++)
                 {
-                    RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
-                    square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
-                    //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
-
-                    int squareAmount = 0;
-                    foreach (GasParticle particle in env.particles)
+                    for (int x = 0; x < resolution_x; x++)
                     {
-                        if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
-                            continue;
+                        RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
+                        square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
+                        //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
 
-                        if (particle.x * (double)resolution_x < (double)(x) ||
-                            particle.x * (double)resolution_x >= (double)(x + 1) ||
-                            particle.y * (double)resolution_y < (double)(y) ||
-                            particle.y * (double)resolution_y >= (double)(y + 1))
-                            continue;
+                        int squareAmount = 0;
+                        foreach (GasParticle particle in env.particles)
+                        {
+                            if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
+                                continue;
 
-                        squareAmount += 1;
-                        visibleAmount += 1;
+                            if (particle.x * (double)resolution_x < (double)(x) ||
+                                particle.x * (double)resolution_x >= (double)(x + 1) ||
+                                particle.y * (double)resolution_y < (double)(y) ||
+                                particle.y * (double)resolution_y >= (double)(y + 1))
+                                continue;
+
+                            squareAmount += 1;
+                            visibleAmount += 1;
+                        }
+
+
+                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount * (double)colorContrast)));
+
+                        square.FillColor = _1020toRGBscaleColor(colorshade);
+                        window.Draw(square);
                     }
-
-                    
-                    int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
-
-                    square.FillColor = _1020toRGBscaleColor(colorshade);
-                    window.Draw(square);
                 }
             }
+
+            if (drawType == 2)
+            {
+                int colorContrast = 25;
+
+                for (int y = 0; y < resolution_y; y++)
+                {
+                    for (int x = 0; x < resolution_x; x++)
+                    {
+
+
+                        RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
+                        square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
+                        //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
+
+                        int squareAmount = 0;
+                        double averageSpeedSum = 0;
+                        foreach (GasParticle particle in env.particles)
+                        {
+                            if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
+                                continue;
+
+                            if (particle.x * (double)resolution_x < (double)(x) ||
+                                particle.x * (double)resolution_x >= (double)(x + 1) ||
+                                particle.y * (double)resolution_y < (double)(y) ||
+                                particle.y * (double)resolution_y >= (double)(y + 1))
+                                continue;
+
+                            averageSpeedSum += particle.vx + particle.vy;
+                            squareAmount += 1;
+                            visibleAmount += 1;
+                        }
+
+
+                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)averageSpeedSum / squareAmount * colorContrast)));
+
+                        square.FillColor = _1020toRGBscaleColor(colorshade);
+                        window.Draw(square);
+                    }
+                }
+            }
+
             Console.WriteLine(visibleAmount);
         }
 
