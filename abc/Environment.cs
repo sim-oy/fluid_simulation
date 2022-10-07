@@ -23,7 +23,7 @@ namespace fluid_simulation
             //particles
             for (; i < particleAmount; i++)
             {
-                particles[i] = new GasParticle(rng.NextDouble() / 2, rng.NextDouble(), 30);
+                particles[i] = new GasParticle(rng.NextDouble() * 0.1, rng.NextDouble() * 0.1, 30);
             }
 
             //MakeBoundary(i);

@@ -22,7 +22,7 @@ namespace fluid_simulation
             //Console.WriteLine(x_pixel * 1920);
             //Console.WriteLine(y_pixel * 1080);
 
-            Environment env = new Environment(5000);
+            Environment env = new Environment(10000);
 
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
@@ -37,26 +37,56 @@ namespace fluid_simulation
 
             Console.WriteLine("init complete");
 
-            while (window.IsOpen)
+            int DrawStyle = 2;
+
+            if (DrawStyle == 1)
             {
-                window.DispatchEvents();
+                while (window.IsOpen)
+                {
+                    window.DispatchEvents();
 
-                env.Attract();
-                Console.WriteLine("calculated");
-                env.Move();
-                Console.WriteLine("moved");
+                    env.Attract();
+                    Console.WriteLine("calculated");
+                    env.Move();
+                    Console.WriteLine("moved");
 
-                window.Clear();
-                //windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                DrawEnvironment(env);
-                Console.WriteLine("drawn");
-                //windowTexture.Update(windowBuffer);
-                //window.Draw(windowSprite);
-                window.Display();
+                    window.Clear();
+                    windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+                    DrawEnvironment1(env);
+                    Console.WriteLine("drawn");
+                    windowTexture.Update(windowBuffer);
+                    window.Draw(windowSprite);
+                    window.Display();
+                }
+            } 
+            else if (DrawStyle == 2)
+            {
+                while (window.IsOpen)
+                {
+                    window.DispatchEvents();
+
+                    env.Attract();
+                    Console.WriteLine("calculated");
+                    env.Move();
+                    Console.WriteLine("moved");
+
+                    window.Clear();
+                    //windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+                    DrawEnvironment2(env);
+                    Console.WriteLine("drawn");
+                    //windowTexture.Update(windowBuffer);
+                    //window.Draw(windowSprite);
+                    window.Display();
+                }
             }
         }
 
-        static void DrawEnvironment(Environment env)
+        static void DrawEnvironment1(Environment env)
+        {
+            DrawParticles1(env);
+        }
+
+        static void DrawEnvironment2(Environment env)
         {
             DrawParticles2(env);
         }
