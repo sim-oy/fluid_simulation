@@ -21,83 +21,72 @@ namespace fluid_simulation
         private static RenderWindow window;
         private static byte[] windowBuffer;
 
-        static void Main(string[] args)
+        private static Texture windowTexture;
+        private static Sprite windowSprite;
+
+        static void Main()
         {
-            //Console.WriteLine(x_pixel * 1920);
-            //Console.WriteLine(y_pixel * 1080);
-
-            Environment env = new Environment(10000);
-
+            Environment env = new Environment(4900);
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
 
             windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-
-            Texture windowTexture = new Texture(WINDOW_WIDTH, WINDOW_HEIGHT);
+            
+            windowTexture = new Texture(WINDOW_WIDTH, WINDOW_HEIGHT);
             windowTexture.Update(windowBuffer);
 
-            Sprite windowSprite = new Sprite(windowTexture);
+            windowSprite = new Sprite(windowTexture);
 
             Console.WriteLine("init complete");
 
-            int DrawStyle = 2;
+            long elapsed_time = 0;
+            while (window.IsOpen)
+            {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                window.DispatchEvents();
+
+                env.Attract();
+                Console.WriteLine("calculated");
+                env.Move();
+                Console.WriteLine("moved");
+
+                window.Clear();
+                DrawWindow(env);
+                window.Display();
+
+                stopwatch.Stop();
+                elapsed_time = stopwatch.ElapsedMilliseconds;
+
+                if (elapsed_time < FRAMETIME)
+                {
+                    Thread.Sleep((int)(FRAMETIME - elapsed_time));
+                }
+                else if (elapsed_time > 2000.0)
+                {
+                    Console.WriteLine(elapsed_time * 1000);
+                }
+            } 
+        }
+
+        static void DrawWindow(Environment env)
+        {
+            int DrawStyle = 1;
 
             if (DrawStyle == 1)
             {
-                long elapsed_time = 0;
-                while (window.IsOpen)
-                {
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    window.DispatchEvents();
-
-                    env.Attract();
-                    Console.WriteLine("calculated");
-                    env.Move();
-                    Console.WriteLine("moved");
-
-                    window.Clear();
-                    windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                    DrawEnvironment1(env);
-                    Console.WriteLine("drawn");
-                    windowTexture.Update(windowBuffer);
-                    window.Draw(windowSprite);
-                    window.Display();
-
-                    stopwatch.Stop();
-                    elapsed_time = stopwatch.ElapsedMilliseconds;
-
-                    if (elapsed_time < FRAMETIME)
-                    {
-                        System.Threading.Thread.Sleep((int)(FRAMETIME - elapsed_time));
-                    }
-                    else if (elapsed_time > 2000.0)
-                    {
-                        Console.WriteLine(elapsed_time * 1000);
-                    }
-                }
+                windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+                DrawEnvironment1(env);
+                Console.WriteLine("drawn");
+                windowTexture.Update(windowBuffer);
+                window.Draw(windowSprite);
             } 
             else if (DrawStyle == 2)
             {
-                while (window.IsOpen)
-                {
-                    window.DispatchEvents();
-
-                    env.Attract();
-                    Console.WriteLine("calculated");
-                    env.Move();
-                    Console.WriteLine("moved");
-
-                    window.Clear();
-                    //windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                    DrawEnvironment2(env);
-                    Console.WriteLine("drawn");
-                    //windowTexture.Update(windowBuffer);
-                    //window.Draw(windowSprite);
-                    window.Display();
-                }
+                DrawEnvironment2(env);
+                Console.WriteLine("drawn");
             }
         }
 
@@ -148,7 +137,7 @@ namespace fluid_simulation
 
             if (drawType == 1)
             {
-                int colorContrast = 1 / 25;
+                int colorContrast = 25;
 
                 for (int y = 0; y < resolution_y; y++)
                 {
@@ -175,7 +164,7 @@ namespace fluid_simulation
                         }
 
 
-                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount * (double)colorContrast)));
+                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
 
                         square.FillColor = _1020toRGBscaleColor(colorshade);
                         window.Draw(square);
@@ -243,3 +232,4 @@ namespace fluid_simulation
         }
     }
 }
+    
