@@ -41,7 +41,7 @@ namespace fluid_simulation
 
             Console.WriteLine("init complete");
 
-            int DrawStyle = 1;
+            int DrawStyle = 2;
 
             if (DrawStyle == 1)
             {
@@ -148,7 +148,7 @@ namespace fluid_simulation
 
             if (drawType == 1)
             {
-                int colorContrast = 25;
+                int colorContrast = 1 / 25;
 
                 for (int y = 0; y < resolution_y; y++)
                 {
@@ -175,7 +175,7 @@ namespace fluid_simulation
                         }
 
 
-                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
+                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount * (double)colorContrast)));
 
                         square.FillColor = _1020toRGBscaleColor(colorshade);
                         window.Draw(square);

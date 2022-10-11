@@ -34,6 +34,8 @@ namespace fluid_simulation
             }
             */
 
+            //MakeBoundary(i);
+
             //particles[particleAmount] = new GasParticle(0, 0, 0.0000001);
         }
 
@@ -65,7 +67,6 @@ namespace fluid_simulation
                     if (x2_y2 >= (1 / particles[i].range) * (1 / particles[i].range))
                         continue;
 
-
                     double dist = Math.Pow(x2_y2, 0.5);
 
                     //suuntavektorit
@@ -78,7 +79,6 @@ namespace fluid_simulation
 
                     sumX += -sx * f_xy * multiplier;
                     sumY += -sy * f_xy * multiplier;
-                    //sumY += 0.000001;
 
                     if (particles[i].x < 0 || particles[i].x >= 1.0 || particles[i].y < 0 || particles[i].y >= 1.0)
                         continue;
@@ -100,6 +100,37 @@ namespace fluid_simulation
             });
         }
 
-        
+        public void MakeBoundary(int i)
+        {
+            double x_pixel = 1 / Convert.ToDouble(Program.WINDOW_WIDTH * Walldensity);
+            double y_pixel = 1 / Convert.ToDouble(Program.WINDOW_HEIGHT * Walldensity);
+
+            double xstart1 = 0 - x_pixel;
+            double ystart1 = 1 + y_pixel;
+            double xstart2 = 0 - x_pixel;
+            double ystart2 = 0 - y_pixel;
+
+            int k = i;
+            for (int j = 0; i < (Program.WINDOW_WIDTH * Walldensity + 2) * 2 + k; i++)
+            {
+                particles[i] = new GasParticle(xstart1 + x_pixel * j, ystart1, 0.01);
+                i++;
+                particles[i] = new GasParticle(xstart2 + x_pixel * j, ystart2, 0.01);
+                j++;
+            }
+            xstart1 = 0 - x_pixel;
+            ystart1 = 0;
+            xstart2 = 1 + x_pixel;
+            ystart2 = 0;
+
+            k = i;
+            for (int j = 0; i < Program.WINDOW_HEIGHT * Walldensity * 2 + k; i++)
+            {
+                particles[i] = new GasParticle(xstart1, ystart1 + y_pixel * j, 0.01);
+                i++;
+                particles[i] = new GasParticle(xstart2, ystart2 + y_pixel * j, 0.01);
+                j++;
+            }
+        }
     }
 }
