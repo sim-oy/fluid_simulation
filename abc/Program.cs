@@ -26,7 +26,7 @@ namespace fluid_simulation
 
         static void Main()
         {
-            Environment env = new Environment(4900);
+            Environment env = new Environment(10000);
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -125,10 +125,10 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environment env)
         {
-            int drawType = 1;
+            int drawType = 2;
 
-            int resolution_x = 25;
-            int resolution_y = 25;
+            int resolution_x = 20;
+            int resolution_y = 20;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
@@ -172,9 +172,9 @@ namespace fluid_simulation
                 }
             }
 
-            if (drawType == 2)
+            else if (drawType == 2)
             {
-                int colorContrast = 25;
+                double colorContrast = 0.003;
 
                 for (int y = 0; y < resolution_y; y++)
                 {
@@ -187,7 +187,8 @@ namespace fluid_simulation
                         //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
 
                         int squareAmount = 0;
-                        double averageSpeedSum = 0;
+                        double averageSpeedSumx = 0;
+                        double averageSpeedSumy = 0;
                         foreach (GasParticle particle in env.particles)
                         {
                             if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
@@ -199,13 +200,18 @@ namespace fluid_simulation
                                 particle.y * (double)resolution_y >= (double)(y + 1))
                                 continue;
 
-                            averageSpeedSum += particle.vx + particle.vy;
+                            averageSpeedSumx += particle.vx;
+                            averageSpeedSumy += particle.vy;
                             squareAmount += 1;
                             visibleAmount += 1;
                         }
 
+                        double averageSpeedSum = Math.Sqrt(averageSpeedSumy * averageSpeedSumy + averageSpeedSumx * averageSpeedSumx);
 
-                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)averageSpeedSum / squareAmount * colorContrast)));
+                        /*if (squareAmount > 0)
+                            Console.WriteLine((double)averageSpeedSum / (double)squareAmount);*/
+
+                        int colorshade = squareAmount > 0 ? (int)(1020 * ((double)averageSpeedSum / (double)squareAmount / colorContrast)) : 0;
 
                         square.FillColor = _1020toRGBscaleColor(colorshade);
                         window.Draw(square);
@@ -213,7 +219,7 @@ namespace fluid_simulation
                 }
             }
 
-            Console.WriteLine(visibleAmount);
+            //Console.WriteLine(visibleAmount);
         }
 
         static Color _1020toRGBscaleColor(int colorshade)
