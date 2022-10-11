@@ -21,83 +21,72 @@ namespace fluid_simulation
         private static RenderWindow window;
         private static byte[] windowBuffer;
 
-        static void Main(string[] args)
+        private static Texture windowTexture;
+        private static Sprite windowSprite;
+
+        static void Main()
         {
-            //Console.WriteLine(x_pixel * 1920);
-            //Console.WriteLine(y_pixel * 1080);
-
             Environment env = new Environment(10000);
-
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
 
             windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-
-            Texture windowTexture = new Texture(WINDOW_WIDTH, WINDOW_HEIGHT);
+            
+            windowTexture = new Texture(WINDOW_WIDTH, WINDOW_HEIGHT);
             windowTexture.Update(windowBuffer);
 
-            Sprite windowSprite = new Sprite(windowTexture);
+            windowSprite = new Sprite(windowTexture);
 
             Console.WriteLine("init complete");
 
-            int DrawStyle = 2;
+            long elapsed_time = 0;
+            while (window.IsOpen)
+            {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                window.DispatchEvents();
+
+                env.Attract();
+                Console.WriteLine("calculated");
+                env.Move();
+                Console.WriteLine("moved");
+
+                window.Clear();
+                DrawWindow(env);
+                window.Display();
+
+                stopwatch.Stop();
+                elapsed_time = stopwatch.ElapsedMilliseconds;
+
+                if (elapsed_time < FRAMETIME)
+                {
+                    Thread.Sleep((int)(FRAMETIME - elapsed_time));
+                }
+                else if (elapsed_time > 2000.0)
+                {
+                    Console.WriteLine(elapsed_time * 1000);
+                }
+            } 
+        }
+
+        static void DrawWindow(Environment env)
+        {
+            int DrawStyle = 1;
 
             if (DrawStyle == 1)
             {
-                long elapsed_time = 0;
-                while (window.IsOpen)
-                {
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    window.DispatchEvents();
-
-                    env.Attract();
-                    Console.WriteLine("calculated");
-                    env.Move();
-                    Console.WriteLine("moved");
-
-                    window.Clear();
-                    windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                    DrawEnvironment1(env);
-                    Console.WriteLine("drawn");
-                    windowTexture.Update(windowBuffer);
-                    window.Draw(windowSprite);
-                    window.Display();
-
-                    stopwatch.Stop();
-                    elapsed_time = stopwatch.ElapsedMilliseconds;
-
-                    if (elapsed_time < FRAMETIME)
-                    {
-                        System.Threading.Thread.Sleep((int)(FRAMETIME - elapsed_time));
-                    }
-                    else if (elapsed_time > 2000.0)
-                    {
-                        Console.WriteLine(elapsed_time * 1000);
-                    }
-                }
+                windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+                DrawEnvironment1(env);
+                Console.WriteLine("drawn");
+                windowTexture.Update(windowBuffer);
+                window.Draw(windowSprite);
             } 
             else if (DrawStyle == 2)
             {
-                while (window.IsOpen)
-                {
-                    window.DispatchEvents();
-
-                    env.Attract();
-                    Console.WriteLine("calculated");
-                    env.Move();
-                    Console.WriteLine("moved");
-
-                    window.Clear();
-                    //windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                    DrawEnvironment2(env);
-                    Console.WriteLine("drawn");
-                    //windowTexture.Update(windowBuffer);
-                    //window.Draw(windowSprite);
-                    window.Display();
-                }
+                DrawEnvironment2(env);
+                Console.WriteLine("drawn");
             }
         }
 
@@ -136,10 +125,10 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environment env)
         {
-            int drawType = 1;
+            int drawType = 2;
 
-            int resolution_x = 25;
-            int resolution_y = 25;
+            int resolution_x = 20;
+            int resolution_y = 20;
 
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
@@ -148,57 +137,17 @@ namespace fluid_simulation
 
             if (drawType == 1)
             {
-                int colorContrast = 1 / 25;
-
-                for (int y = 0; y < resolution_y; y++)
-                {
-                    for (int x = 0; x < resolution_x; x++)
-                    {
-                        RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
-                        square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
-                        //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
-
-                        int squareAmount = 0;
-                        foreach (GasParticle particle in env.particles)
-                        {
-                            if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
-                                continue;
-
-                            if (particle.x * (double)resolution_x < (double)(x) ||
-                                particle.x * (double)resolution_x >= (double)(x + 1) ||
-                                particle.y * (double)resolution_y < (double)(y) ||
-                                particle.y * (double)resolution_y >= (double)(y + 1))
-                                continue;
-
-                            squareAmount += 1;
-                            visibleAmount += 1;
-                        }
-
-
-                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount * (double)colorContrast)));
-
-                        square.FillColor = _1020toRGBscaleColor(colorshade);
-                        window.Draw(square);
-                    }
-                }
-            }
-
-            if (drawType == 2)
-            {
                 int colorContrast = 25;
 
                 for (int y = 0; y < resolution_y; y++)
                 {
                     for (int x = 0; x < resolution_x; x++)
                     {
-
-
                         RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
                         square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
                         //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
 
                         int squareAmount = 0;
-                        double averageSpeedSum = 0;
                         foreach (GasParticle particle in env.particles)
                         {
                             if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
@@ -210,13 +159,12 @@ namespace fluid_simulation
                                 particle.y * (double)resolution_y >= (double)(y + 1))
                                 continue;
 
-                            averageSpeedSum += particle.vx + particle.vy;
                             squareAmount += 1;
                             visibleAmount += 1;
                         }
 
 
-                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)averageSpeedSum / squareAmount * colorContrast)));
+                        int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
 
                         square.FillColor = _1020toRGBscaleColor(colorshade);
                         window.Draw(square);
@@ -224,7 +172,54 @@ namespace fluid_simulation
                 }
             }
 
-            Console.WriteLine(visibleAmount);
+            else if (drawType == 2)
+            {
+                double colorContrast = 0.003;
+
+                for (int y = 0; y < resolution_y; y++)
+                {
+                    for (int x = 0; x < resolution_x; x++)
+                    {
+
+
+                        RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
+                        square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
+                        //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
+
+                        int squareAmount = 0;
+                        double averageSpeedSumx = 0;
+                        double averageSpeedSumy = 0;
+                        foreach (GasParticle particle in env.particles)
+                        {
+                            if (particle.x < 0 || particle.x > 1.0 || particle.y < 0 || particle.y > 1.0)
+                                continue;
+
+                            if (particle.x * (double)resolution_x < (double)(x) ||
+                                particle.x * (double)resolution_x >= (double)(x + 1) ||
+                                particle.y * (double)resolution_y < (double)(y) ||
+                                particle.y * (double)resolution_y >= (double)(y + 1))
+                                continue;
+
+                            averageSpeedSumx += particle.vx;
+                            averageSpeedSumy += particle.vy;
+                            squareAmount += 1;
+                            visibleAmount += 1;
+                        }
+
+                        double averageSpeedSum = Math.Sqrt(averageSpeedSumy * averageSpeedSumy + averageSpeedSumx * averageSpeedSumx);
+
+                        /*if (squareAmount > 0)
+                            Console.WriteLine((double)averageSpeedSum / (double)squareAmount);*/
+
+                        int colorshade = squareAmount > 0 ? (int)(1020 * ((double)averageSpeedSum / (double)squareAmount / colorContrast)) : 0;
+
+                        square.FillColor = _1020toRGBscaleColor(colorshade);
+                        window.Draw(square);
+                    }
+                }
+            }
+
+            //Console.WriteLine(visibleAmount);
         }
 
         static Color _1020toRGBscaleColor(int colorshade)
@@ -243,3 +238,4 @@ namespace fluid_simulation
         }
     }
 }
+    
