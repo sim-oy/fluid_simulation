@@ -5,7 +5,7 @@ namespace fluid_simulation
 {
     class Environment
     {
-        private const double environmentFriction = 0.999;
+        private const double environmentFriction = 1;
 
         public GasParticle[] particles;
 
@@ -22,7 +22,7 @@ namespace fluid_simulation
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
                 {
-                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle((x / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, (y / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 30);
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0.3 + (x / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 0.3 + (y / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 100);
                 }
             }
             /*

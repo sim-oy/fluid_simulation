@@ -25,7 +25,7 @@ namespace fluid_simulation
         private const int drawType = 2;
 
 
-        public const int FPS_LIMIT = 200;
+        public const int FPS_LIMIT = -1;
         public static long FRAMETIME = 1000 / FPS_LIMIT;
 
         private static RenderWindow window;
@@ -69,7 +69,8 @@ namespace fluid_simulation
 
                 stopwatch.Stop();
                 elapsed_time = stopwatch.ElapsedMilliseconds;
-
+                if (FPS_LIMIT < 0)
+                    continue;
                 if (elapsed_time < FRAMETIME)
                 {
                     Thread.Sleep((int)(FRAMETIME - elapsed_time));
@@ -98,6 +99,7 @@ namespace fluid_simulation
             {
                 windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
                 DrawParticles3(env);
+                //DrawParticles1(env);
                 windowTexture.Update(windowBuffer);
                 window.Draw(windowSprite);
             }
@@ -231,40 +233,12 @@ namespace fluid_simulation
 
         static void DrawParticles3(Environment env)
         {
-            /*
-            //for (int pixel_x = 0; pixel_x < WINDOW_WIDTH; pixel_x++)
-            Parallel.For(0, WINDOW_WIDTH, pixel_x =>
+            //foreach (GasParticle particle in env.particles)
+            Parallel.ForEach(env.particles, particle =>
             {
-                for (int pixel_y = 0; pixel_y < WINDOW_HEIGHT; pixel_y++)
-                {
-                    foreach (GasParticle particle in env.particles)
-                    {
-                        int x = (int)(particle.x * WINDOW_WIDTH);
-                        int y = (int)(particle.y * WINDOW_HEIGHT);
-                        double range = (1 / particle.range * WINDOW_HEIGHT);
-
-                        if (x < 0 || x >= WINDOW_WIDTH || y < 0 || y >= WINDOW_HEIGHT)
-                            continue;
-
-                        if (Math.Pow(x - pixel_x, 2) + Math.Pow(y - pixel_y, 2) > Math.Pow(range, 2))
-                            continue;
-
-                        int index = (pixel_y * WINDOW_WIDTH + pixel_x) * 4;
-
-                        windowBuffer[index] = 255;
-                        windowBuffer[index + 1] = 0;
-                        windowBuffer[index + 2] = 0;
-                        windowBuffer[index + 3] = 255;
-                    }
-                }
-            });*/
-
-
-            foreach (GasParticle particle in env.particles)
-            {
-                int x = (int)(particle.x * WINDOW_WIDTH);
-                int y = (int)(particle.y * WINDOW_HEIGHT);
-                double range = (1 / particle.range * WINDOW_HEIGHT);
+                int x = (int)Math.Round(particle.x * WINDOW_WIDTH);
+                int y = (int)Math.Round(particle.y * WINDOW_HEIGHT);
+                double range = Math.Round(1 / particle.range * WINDOW_HEIGHT);
 
                 for (int pixel_x = -(int)range; pixel_x < (int)range; pixel_x++)
                 {
@@ -273,18 +247,23 @@ namespace fluid_simulation
                         if (x + pixel_x < 0 || x + pixel_x >= WINDOW_WIDTH || y + pixel_y < 0 || y + pixel_y >= WINDOW_HEIGHT)
                             continue;
 
-                        if (Math.Pow(pixel_x - x, 2) + Math.Pow(pixel_y - y, 2) > Math.Pow(range, 2))
+                        if (Math.Pow(pixel_x, 2) + Math.Pow(pixel_y, 2) > Math.Pow(range, 2))
                             continue;
 
                         int index = ((y + pixel_y) * WINDOW_WIDTH + (x + pixel_x)) * 4;
 
-                        windowBuffer[index] = 255;
-                        windowBuffer[index + 1] = 0;
-                        windowBuffer[index + 2] = 0;
+                        int _1020color = 5 * (1 + windowBuffer[index] + windowBuffer[index + 1] + windowBuffer[index + 2] - 255);
+
+                        Color colorRGB = _1020toRGBscaleColor(_1020color);
+
+                        windowBuffer[index] = colorRGB.R;
+                        windowBuffer[index + 1] = colorRGB.G;
+                        windowBuffer[index + 2] = colorRGB.B;
                         windowBuffer[index + 3] = 255;
+                        
                     }
                 }
-            }
+            });
 
         }
 
