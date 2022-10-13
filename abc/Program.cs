@@ -12,8 +12,8 @@ namespace fluid_simulation
 {
     class Program
     {
-        public const int WINDOW_WIDTH = 500;
-        public const int WINDOW_HEIGHT = 500;
+        public const int WINDOW_WIDTH = 700;
+        public const int WINDOW_HEIGHT = 700;
 
         // 1: draw all particles
         // 2: draw attribute in resolution
@@ -36,7 +36,7 @@ namespace fluid_simulation
 
         static void Main()
         {
-            Environment env = new Environment((int)Math.Pow(50, 2));
+            Environment env = new Environment((int)Math.Pow(72, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -59,9 +59,9 @@ namespace fluid_simulation
                 window.DispatchEvents();
 
                 env.Attract();
-                Console.WriteLine("calculated");
+                //Console.WriteLine("calculated");
                 env.Move();
-                Console.WriteLine("moved");
+                //Console.WriteLine("moved");
 
                 window.Clear();
                 DrawWindow(env);
@@ -104,7 +104,7 @@ namespace fluid_simulation
                 window.Draw(windowSprite);
             }
 
-            Console.WriteLine("drawn");
+            //Console.WriteLine("drawn");
         }
         
         
@@ -236,10 +236,11 @@ namespace fluid_simulation
             //foreach (GasParticle particle in env.particles)
             Parallel.ForEach(env.particles, particle =>
             {
-                int x = (int)Math.Round(particle.x * WINDOW_WIDTH);
-                int y = (int)Math.Round(particle.y * WINDOW_HEIGHT);
-                double range = Math.Round(1 / particle.range * WINDOW_HEIGHT);
-
+                
+                int x = (int)(particle.x * WINDOW_WIDTH);
+                int y = (int)(particle.y * WINDOW_HEIGHT);
+                double range = (1 / particle.range * WINDOW_HEIGHT);
+                
                 for (int pixel_x = -(int)range; pixel_x < (int)range; pixel_x++)
                 {
                     for (int pixel_y = -(int)range; pixel_y < (int)range; pixel_y++)

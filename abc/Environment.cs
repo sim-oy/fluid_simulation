@@ -5,7 +5,7 @@ namespace fluid_simulation
 {
     class Environment
     {
-        private const double environmentFriction = 1;
+        private const double environmentFriction = 0.9999;
 
         public GasParticle[] particles;
 
@@ -18,6 +18,8 @@ namespace fluid_simulation
             Random rng = new Random();
 
             //particles
+
+            /*
             for (int y = 0; y < Math.Sqrt(particleAmount); y++)
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
@@ -25,14 +27,22 @@ namespace fluid_simulation
                     particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0.3 + (x / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 0.3 + (y / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 100);
                 }
             }
-            /*
-            for (; i < particleAmount; i++)
-            {
-                particles[i] = new GasParticle(rng.NextDouble() * 0.1, rng.NextDouble() * 0.1, 30);
-            }
             */
 
-            //particles[particleAmount] = new GasParticle(0, 0, 0.0000001);
+            for (int y = 0; y < Math.Sqrt(particleAmount); y++)
+            {
+                for (int x = 0; x < Math.Sqrt(particleAmount); x++)
+                {
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 1) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 1) + rng.NextDouble() * 0.00001, 200);
+                }
+            }
+
+            /*
+            for (int i = 0; i < particleAmount; i++)
+            {
+                particles[i] = new GasParticle(rng.NextDouble(), rng.NextDouble(), 200);
+            }
+            */
         }
 
         public void Move()
@@ -84,6 +94,8 @@ namespace fluid_simulation
                 particles[i].vx += sumX;
                 particles[i].vy += sumY;
 
+                particles[i].vy += 0.00001;
+
                 //boundary
                 if (particles[i].x < 0)
                     particles[i].vx = Math.Abs(particles[i].vx);
@@ -94,8 +106,8 @@ namespace fluid_simulation
                 else if (particles[i].y > 1.0)
                     particles[i].vy = -Math.Abs(particles[i].vy);
 
-                //particles[i].vx *= environmentFriction;
-                //particles[i].vy *= environmentFriction;
+                particles[i].vx *= environmentFriction;
+                particles[i].vy *= environmentFriction;
             });
         }
     }
