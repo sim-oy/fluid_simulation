@@ -5,7 +5,7 @@ namespace fluid_simulation
 {
     class Environment
     {
-        private const double environmentFriction = 0.9999;
+        private const double environmentFriction = 1;
 
         public GasParticle[] particles;
 
@@ -33,7 +33,7 @@ namespace fluid_simulation
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
                 {
-                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 1) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 1) + rng.NextDouble() * 0.00001, 200);
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 100);
                 }
             }
 
@@ -81,30 +81,38 @@ namespace fluid_simulation
 
                     double f_xy = particles[i].interaction(dist);
 
-                    double multiplier = 0.0001;
+                    double multiplier = 0.05;
 
                     sumX += -sx * f_xy * multiplier;
                     sumY += -sy * f_xy * multiplier;
 
+                    /*
                     if (particles[i].x < 0 || particles[i].x >= 1.0 || particles[i].y < 0 || particles[i].y >= 1.0)
                         continue;
+                    */
 
+                    double particleCollisionFriction = 0.999;
+                    particles[i].vx *= particleCollisionFriction;
+                    particles[i].vy *= particleCollisionFriction;
                 }
 
                 particles[i].vx += sumX;
                 particles[i].vy += sumY;
 
-                particles[i].vy += 0.00001;
+                // gravity
+                particles[i].vy += 0.0001;
 
-                //boundary
+                // boundary
+                double collisionFriction = 0.5;
+
                 if (particles[i].x < 0)
-                    particles[i].vx = Math.Abs(particles[i].vx);
+                    particles[i].vx = Math.Abs(particles[i].vx) * collisionFriction;
                 else if (particles[i].x > 1.0)
-                    particles[i].vx = -Math.Abs(particles[i].vx);
+                    particles[i].vx = -Math.Abs(particles[i].vx) * collisionFriction;
                 else if (particles[i].y < 0)
-                    particles[i].vy = Math.Abs(particles[i].vy);
+                    particles[i].vy = Math.Abs(particles[i].vy) * collisionFriction;
                 else if (particles[i].y > 1.0)
-                    particles[i].vy = -Math.Abs(particles[i].vy);
+                    particles[i].vy = -Math.Abs(particles[i].vy) * collisionFriction;
 
                 particles[i].vx *= environmentFriction;
                 particles[i].vy *= environmentFriction;

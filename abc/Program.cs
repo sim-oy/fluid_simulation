@@ -7,13 +7,14 @@ using System.Threading;
 using System.Drawing;
 using Color = SFML.Graphics.Color;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace fluid_simulation
 {
     class Program
     {
-        public const int WINDOW_WIDTH = 700;
-        public const int WINDOW_HEIGHT = 700;
+        public const int WINDOW_WIDTH = 500;
+        public const int WINDOW_HEIGHT = 500;
 
         // 1: draw all particles
         // 2: draw attribute in resolution
@@ -59,9 +60,9 @@ namespace fluid_simulation
                 window.DispatchEvents();
 
                 env.Attract();
-                //Console.WriteLine("calculated");
+                Console.WriteLine("calculated");
                 env.Move();
-                //Console.WriteLine("moved");
+                Console.WriteLine("moved");
 
                 window.Clear();
                 DrawWindow(env);
@@ -102,9 +103,14 @@ namespace fluid_simulation
                 //DrawParticles1(env);
                 windowTexture.Update(windowBuffer);
                 window.Draw(windowSprite);
+
+                CircleShape circ = new CircleShape(2);
+                circ.Position = new Vector2f((float)(env.particles[58].x * WINDOW_WIDTH), (float)(env.particles[58].y * WINDOW_HEIGHT));
+                circ.FillColor = new Color(0xff, 0xff, 0xff);
+                window.Draw(circ);
             }
 
-            //Console.WriteLine("drawn");
+            Console.WriteLine("drawn");
         }
         
         
@@ -239,7 +245,7 @@ namespace fluid_simulation
                 
                 int x = (int)(particle.x * WINDOW_WIDTH);
                 int y = (int)(particle.y * WINDOW_HEIGHT);
-                double range = (1 / particle.range * WINDOW_HEIGHT);
+                double range = (1 / particle.range * WINDOW_HEIGHT) * 0.5;
                 
                 for (int pixel_x = -(int)range; pixel_x < (int)range; pixel_x++)
                 {
@@ -265,11 +271,7 @@ namespace fluid_simulation
                     }
                 }
             });
-
         }
-
-
-
 
         static Color _1020toRGBscaleColor(int colorshade)
         {
