@@ -33,7 +33,9 @@ namespace fluid_simulation
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
                 {
-                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 100);
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 1/100.0);
+                    //particles[y * (int)Math.Sqrt(particleAmount) + x].vx = rng.NextDouble()*0.01;
+                    //particles[y * (int)Math.Sqrt(particleAmount) + x].vy = rng.NextDouble()*0.01;
                 }
             }
 
@@ -47,12 +49,13 @@ namespace fluid_simulation
 
         public void Move()
         {
+            double momentum = 0;
             for (int i = 0; i < particles.Length; i++)
             {
                 particles[i].Move();
+                momentum += particles[i].vx * particles[i].vx + particles[i].vy * particles[i].vy;
             }
-            //Console.WriteLine(particles[1200].x);
-            //Console.WriteLine(particles[1200].y);
+            //Console.WriteLine($"{momentum}");
         }
 
         public void Attract()
@@ -67,13 +70,17 @@ namespace fluid_simulation
 
                     double distanceX = particles[j].x - particles[i].x;
                     double distanceY = particles[j].y - particles[i].y;
+                    double range = particles[i].range;
+
+                    if (Math.Abs(distanceX) > range || Math.Abs(distanceY) > range)
+                        continue;
 
                     double x2_y2 = distanceX * distanceX + distanceY * distanceY;
 
-                    if (x2_y2 >= (1 / particles[i].range) * (1 / particles[i].range))
+                    if (x2_y2 >= range * range)
                         continue;
 
-                    double dist = Math.Pow(x2_y2, 0.5);
+                    double dist = Math.Sqrt(x2_y2);
 
                     //suuntavektorit
                     double sx = distanceX / dist;
@@ -81,17 +88,18 @@ namespace fluid_simulation
 
                     double f_xy = particles[i].interaction(dist);
 
-                    double multiplier = 0.05;
+                    double timestep = 0.001;
 
-                    sumX += -sx * f_xy * multiplier;
-                    sumY += -sy * f_xy * multiplier;
+                    sumX += -sx * f_xy * timestep;
+                    sumY += -sy * f_xy * timestep;
 
                     /*
                     if (particles[i].x < 0 || particles[i].x >= 1.0 || particles[i].y < 0 || particles[i].y >= 1.0)
                         continue;
                     */
 
-                    double particleCollisionFriction = 0.999;
+                    //double particleCollisionFriction = 0.998;
+                    double particleCollisionFriction = 1;
                     particles[i].vx *= particleCollisionFriction;
                     particles[i].vy *= particleCollisionFriction;
                 }
@@ -100,10 +108,11 @@ namespace fluid_simulation
                 particles[i].vy += sumY;
 
                 // gravity
-                particles[i].vy += 0.0001;
+                //particles[i].vy += 0.0001;
 
                 // boundary
-                double collisionFriction = 0.5;
+                //double collisionFriction = 0.5;
+                double collisionFriction = 1;
 
                 if (particles[i].x < 0)
                     particles[i].vx = Math.Abs(particles[i].vx) * collisionFriction;

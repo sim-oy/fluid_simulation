@@ -25,7 +25,7 @@ namespace fluid_simulation
 
         public double interaction(double dist)
         {
-            return 1 / range * (Math.Cos(range * Math.PI * dist) + 1);
+            return range * (Math.Cos((1 / range) * Math.PI * dist) + 1);
         }
     }
 }

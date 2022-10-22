@@ -1,13 +1,11 @@
-﻿using System;
-using SFML.Window;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.System;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Drawing;
-using Color = SFML.Graphics.Color;
+using SFML.Window;
+using System;
 using System.Diagnostics;
-using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Color = SFML.Graphics.Color;
 
 namespace fluid_simulation
 {
@@ -37,13 +35,13 @@ namespace fluid_simulation
 
         static void Main()
         {
-            Environment env = new Environment((int)Math.Pow(72, 2));
+            Environment env = new Environment((int)Math.Pow(100, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
 
             windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-            
+
             windowTexture = new Texture(WINDOW_WIDTH, WINDOW_HEIGHT);
             windowTexture.Update(windowBuffer);
 
@@ -60,9 +58,9 @@ namespace fluid_simulation
                 window.DispatchEvents();
 
                 env.Attract();
-                Console.WriteLine("calculated");
+                //Console.WriteLine("calculated");
                 env.Move();
-                Console.WriteLine("moved");
+                //Console.WriteLine("moved");
 
                 window.Clear();
                 DrawWindow(env);
@@ -80,7 +78,7 @@ namespace fluid_simulation
                 {
                     Console.WriteLine((double)elapsed_time / 1000.0);
                 }
-            } 
+            }
         }
 
         static void DrawWindow(Environment env)
@@ -110,11 +108,11 @@ namespace fluid_simulation
                 window.Draw(circ);
             }
 
-            Console.WriteLine("drawn");
+            //Console.WriteLine("drawn");
         }
-        
-        
-        
+
+
+
         /*
         static void DrawEnvironment(Environment env)
         {
@@ -224,7 +222,7 @@ namespace fluid_simulation
                             visibleAmount += 1;
                         }
 
-                        
+
                         /*if (squareAmount > 0)
                             Console.WriteLine((double)averageSpeedSum / (double)squareAmount);*/
 
@@ -242,11 +240,10 @@ namespace fluid_simulation
             //foreach (GasParticle particle in env.particles)
             Parallel.ForEach(env.particles, particle =>
             {
-                
                 int x = (int)(particle.x * WINDOW_WIDTH);
                 int y = (int)(particle.y * WINDOW_HEIGHT);
-                double range = (1 / particle.range * WINDOW_HEIGHT) * 0.5;
-                
+                double range = (particle.range * WINDOW_HEIGHT) * 0.5;
+
                 for (int pixel_x = -(int)range; pixel_x < (int)range; pixel_x++)
                 {
                     for (int pixel_y = -(int)range; pixel_y < (int)range; pixel_y++)
@@ -267,7 +264,7 @@ namespace fluid_simulation
                         windowBuffer[index + 1] = colorRGB.G;
                         windowBuffer[index + 2] = colorRGB.B;
                         windowBuffer[index + 3] = 255;
-                        
+
                     }
                 }
             });
@@ -289,4 +286,3 @@ namespace fluid_simulation
         }
     }
 }
-    
