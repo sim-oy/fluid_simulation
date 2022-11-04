@@ -26,6 +26,7 @@ namespace fluid_simulation
 
         public const int FPS_LIMIT = -1;
         public static long FRAMETIME = 1000 / FPS_LIMIT;
+        private const int FRAME_RENDER_INTERVAL = 0;
 
         private static RenderWindow window;
         private static byte[] windowBuffer;
@@ -49,6 +50,7 @@ namespace fluid_simulation
 
             Console.WriteLine("init complete");
 
+            int frames_skipped = 0;
             long elapsed_time = 0;
             while (window.IsOpen)
             {
@@ -57,27 +59,36 @@ namespace fluid_simulation
 
                 window.DispatchEvents();
 
+
                 env.Attract();
                 //Console.WriteLine("calculated");
                 env.Move();
                 //Console.WriteLine("moved");
 
-                window.Clear();
-                DrawWindow(env);
-                window.Display();
+                if (frames_skipped >= FRAME_RENDER_INTERVAL)
+                {
+                    window.Clear();
+                    DrawWindow(env);
+                    window.Display();
 
-                stopwatch.Stop();
-                elapsed_time = stopwatch.ElapsedMilliseconds;
-                if (FPS_LIMIT < 0)
-                    continue;
-                if (elapsed_time < FRAMETIME)
-                {
-                    Thread.Sleep((int)(FRAMETIME - elapsed_time));
+                    frames_skipped = 0;
+
+                    stopwatch.Stop();
+                    elapsed_time = stopwatch.ElapsedMilliseconds;
+                    Console.WriteLine(elapsed_time);
+                    if (FPS_LIMIT < 0)
+                        continue;
+                    if (elapsed_time < FRAMETIME)
+                    {
+                        Thread.Sleep((int)(FRAMETIME - elapsed_time));
+                    }
+                    else if (elapsed_time > 2000.0)
+                    {
+                        Console.WriteLine((double)elapsed_time / 1000.0);
+                    }
                 }
-                else if (elapsed_time > 2000.0)
-                {
-                    Console.WriteLine((double)elapsed_time / 1000.0);
-                }
+                else
+                    frames_skipped++;
             }
         }
 
