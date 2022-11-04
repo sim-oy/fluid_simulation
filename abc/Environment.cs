@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace fluid_simulation
 {
-    class Environment
+    class Environments
     {
-        private const double environmentFriction = 1;
+        public const double environmentFriction = 1;
 
         public GasParticle[] particles;
 
-        public Environment(int particleAmount)
+        public Environments(int particleAmount)
         {
 
             //particles = new GasParticle[particleAmount + Program.WINDOW_WIDTH * Walldensity * 2 + Program.WINDOW_HEIGHT * Walldensity * 2 + 4];
@@ -33,7 +33,7 @@ namespace fluid_simulation
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
                 {
-                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 1/100.0);
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 1 / 100.0, 0);
                     //particles[y * (int)Math.Sqrt(particleAmount) + x].vx = rng.NextDouble()*0.01;
                     //particles[y * (int)Math.Sqrt(particleAmount) + x].vy = rng.NextDouble()*0.01;
                 }
@@ -58,7 +58,7 @@ namespace fluid_simulation
             //Console.WriteLine($"{momentum}");
         }
 
-        public void Attract()
+        public void Interact()
         {
             Parallel.For(0, particles.Length, i =>
             {
