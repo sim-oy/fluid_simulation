@@ -9,13 +9,15 @@ namespace fluid_simulation
         public double vx;
         public double vy;
         public double range;
+        public int type;
 
-        public GasParticle(double x, double y, double range)
+        public GasParticle(double x, double y, double range, int type)
         {
             this.x = x;
             this.y = y;
             this.range = range;
-        }
+            this.type = type;
+         }
 
         public void Move()
         {

@@ -1,4 +1,6 @@
-﻿using SFML.Graphics;
+﻿using System;
+using SFML.Window;
+using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using System;
@@ -6,6 +8,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Color = SFML.Graphics.Color;
+using System.Diagnostics;
+using System.Reflection;
+using abc;
+using OpenCL;
 
 namespace fluid_simulation
 {
@@ -26,7 +32,6 @@ namespace fluid_simulation
 
         public const int FPS_LIMIT = -1;
         public static long FRAMETIME = 1000 / FPS_LIMIT;
-        private const int FRAME_RENDER_INTERVAL = 0;
 
         private static RenderWindow window;
         private static byte[] windowBuffer;
@@ -36,21 +41,33 @@ namespace fluid_simulation
 
         static void Main()
         {
-            Environment env = new Environment((int)Math.Pow(100, 2));
+            Console.WriteLine("start");
+
+            Environments env = new Environments((int)Math.Pow(100, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
 
             windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-
+            
             windowTexture = new Texture(WINDOW_WIDTH, WINDOW_HEIGHT);
             windowTexture.Update(windowBuffer);
 
             windowSprite = new Sprite(windowTexture);
 
-            Console.WriteLine("init complete");
+            try
+            {
+                if (AcceleratorDevice.HasGPU)
+                {
+                    GPU.Init(env);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            Console.WriteLine("Init");
 
-            int frames_skipped = 0;
             long elapsed_time = 0;
             while (window.IsOpen)
             {
@@ -59,40 +76,32 @@ namespace fluid_simulation
 
                 window.DispatchEvents();
 
-
-                env.Attract();
+                env.Interact();
+                GPU.Run(env);
                 //Console.WriteLine("calculated");
                 env.Move();
                 //Console.WriteLine("moved");
 
-                if (frames_skipped >= FRAME_RENDER_INTERVAL)
+                window.Clear();
+                DrawWindow(env);
+                window.Display();
+
+                stopwatch.Stop();
+                elapsed_time = stopwatch.ElapsedMilliseconds;
+                if (FPS_LIMIT < 0)
+                    continue;
+                if (elapsed_time < FRAMETIME)
                 {
-                    window.Clear();
-                    DrawWindow(env);
-                    window.Display();
-
-                    frames_skipped = 0;
-
-                    stopwatch.Stop();
-                    elapsed_time = stopwatch.ElapsedMilliseconds;
-                    Console.WriteLine(elapsed_time);
-                    if (FPS_LIMIT < 0)
-                        continue;
-                    if (elapsed_time < FRAMETIME)
-                    {
-                        Thread.Sleep((int)(FRAMETIME - elapsed_time));
-                    }
-                    else if (elapsed_time > 2000.0)
-                    {
-                        Console.WriteLine((double)elapsed_time / 1000.0);
-                    }
+                    Thread.Sleep((int)(FRAMETIME - elapsed_time));
                 }
-                else
-                    frames_skipped++;
-            }
+                else if (elapsed_time > 2000.0)
+                {
+                    Console.WriteLine((double)elapsed_time / 1000.0);
+                }
+            } 
         }
 
-        static void DrawWindow(Environment env)
+        static void DrawWindow(Environments env)
         {
             if (DrawStyle == 1)
             {
@@ -121,9 +130,9 @@ namespace fluid_simulation
 
             //Console.WriteLine("drawn");
         }
-
-
-
+        
+        
+        
         /*
         static void DrawEnvironment(Environment env)
         {
@@ -131,7 +140,7 @@ namespace fluid_simulation
         }
         */
 
-        static void DrawParticles1(Environment env)
+        static void DrawParticles1(Environments env)
         {
             foreach (GasParticle particle in env.particles)
             {
@@ -154,7 +163,7 @@ namespace fluid_simulation
             }
         }
 
-        static void DrawParticles2(Environment env)
+        static void DrawParticles2(Environments env)
         {
             int resolution_x = 40;
             int resolution_y = 40;
@@ -233,7 +242,7 @@ namespace fluid_simulation
                             visibleAmount += 1;
                         }
 
-
+                        
                         /*if (squareAmount > 0)
                             Console.WriteLine((double)averageSpeedSum / (double)squareAmount);*/
 
@@ -246,11 +255,12 @@ namespace fluid_simulation
             }
         }
 
-        static void DrawParticles3(Environment env)
+        static void DrawParticles3(Environments env)
         {
             //foreach (GasParticle particle in env.particles)
             Parallel.ForEach(env.particles, particle =>
             {
+                
                 int x = (int)(particle.x * WINDOW_WIDTH);
                 int y = (int)(particle.y * WINDOW_HEIGHT);
                 double range = (particle.range * WINDOW_HEIGHT) * 0.5;
@@ -275,7 +285,7 @@ namespace fluid_simulation
                         windowBuffer[index + 1] = colorRGB.G;
                         windowBuffer[index + 2] = colorRGB.B;
                         windowBuffer[index + 3] = 255;
-
+                        
                     }
                 }
             });
