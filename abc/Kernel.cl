@@ -1,6 +1,6 @@
 ﻿
 float f1(float dist, float range) {
-    return 1 / range * (cos(range * Math.PI * dist) + 1);
+    return 1 / range * (cos(range * M_PI * dist) + 1);
 }
 
 kernel void Interact(global float* input_X, int size_X, float environmentFriction, global float* output_Z)
@@ -14,6 +14,7 @@ kernel void Interact(global float* input_X, int size_X, float environmentFrictio
     
     float xi = input_X[i * 5];
     float yi = input_X[i * 5 + 1];
+    float range = input_X[i * 5 + 4];
 
     float sumX = 0, sumY = 0;
 
@@ -24,16 +25,56 @@ kernel void Interact(global float* input_X, int size_X, float environmentFrictio
 
         float distanceX = input_X[j * 5] - xi;
         float distanceY = input_X[j * 5 + 1] - yi;
-        float dist = sqrt(distanceX * distanceX + distanceY * distanceY);
+        
+        if (abs(distanceX) > range || abs(distanceY) > range)
+            continue;
 
-        float b = G * input_X[j * 5 + 4] / (dist + 0.00001);
-        //printf(""%0.20f\t%0.20f\t%0.20f\n"", G, input_X[j * 5 + 4], (dist + 0.00001));
-        sumX += distanceX * b;
-        sumY += distanceY * b;
+        float x2_y2 = distanceX * distanceX + distanceY * distanceY;
+
+        if (x2_y2 >= range * range)
+            continue;
+
+        float dist = sqrt(x2_y2);
+
+        //suuntavektorit
+        float sx = distanceX / dist;
+        float sy = distanceY / dist;
+
+        double f_xy = f1(dist, range);
+
+        float timestep = 0.001;
+
+        sumX += -sx * f_xy * timestep;
+        sumY += -sy * f_xy * timestep;
+
+        /*
+        //double particleCollisionFriction = 0.998;
+        double particleCollisionFriction = 1;
+        particles[i].vx *= particleCollisionFriction;
+        particles[i].vy *= particleCollisionFriction;*/
     }
 
     output_Z[i * 2] += input_X[i * 5 + 2] + sumX;
     output_Z[i * 2 + 1] += input_X[i * 5 + 3] + sumY;
+
+    // gravity
+    //particles[i].vy += 0.0001;
+
+    // boundary
+    //double collisionFriction = 0.5;
+    float collisionFriction = 1;
+
+    if (xi < 0)
+        output_Z[i * 2] = abs(xi) * collisionFriction;
+    else if (xi > 1.0)
+        output_Z[i * 2] = -abs(xi) * collisionFriction;
+    else if (yi < 0)
+        output_Z[i * 2 + 1] = abs(yi) * collisionFriction;
+    else if (yi > 1.0)
+        output_Z[i * 2 + 1] = -abs(yi) * collisionFriction;
+
+    output_Z[i * 2] *= environmentFriction;
+    output_Z[i * 2 + 1] *= environmentFriction;
     
 
     //printf(""%lf\n"", (double)input_X[index]);

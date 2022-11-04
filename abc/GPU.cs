@@ -58,17 +58,7 @@ namespace abc
             queue = new ComputeCommandQueue(context, context.Devices[0], ComputeCommandQueueFlags.None);
             eventList = new ComputeEventList();
 
-            input_X = new float[env.particles.Length * 5];
-            int i = 0;
-            foreach (GasParticle particle in env.particles)
-            {
-                input_X[i + 0] = (float)particle.x;
-                input_X[i + 1] = (float)particle.y;
-                input_X[i + 2] = (float)particle.vx;
-                input_X[i + 3] = (float)particle.vy;
-
-                i += 5;
-            }
+            input_X = new float[env.particles.Length * 6];
             output_Z = new float[env.particles.Length * 2];
 
             a = new ComputeBuffer<float>(context, ComputeMemoryFlags.ReadOnly | ComputeMemoryFlags.CopyHostPointer, input_X);
@@ -84,7 +74,7 @@ namespace abc
 
         public static void Run(Environments env)
         {
-            input_X = new float[env.particles.Length * 5];
+            input_X = new float[env.particles.Length * 6];
             int i = 0;
             foreach (GasParticle particle in env.particles)
             {
@@ -92,10 +82,10 @@ namespace abc
                 input_X[i + 1] = (float)particle.y;
                 input_X[i + 2] = (float)particle.vx;
                 input_X[i + 3] = (float)particle.vy;
-                input_X[i + 3] = (float)particle.range;
-                input_X[i + 3] = (float)particle.type;
+                input_X[i + 4] = (float)particle.range;
+                input_X[i + 5] = (float)particle.type;
 
-                i += 5;
+                i += 6;
             }
 
             output_Z = new float[env.particles.Length * 2];

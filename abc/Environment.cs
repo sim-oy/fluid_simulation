@@ -63,6 +63,7 @@ namespace fluid_simulation
             Parallel.For(0, particles.Length, i =>
             {
                 double sumX = 0, sumY = 0;
+                double range = particles[i].range;
                 for (int j = 0; j < particles.Length; j++)
                 {
                     if (i == j)
@@ -70,7 +71,6 @@ namespace fluid_simulation
 
                     double distanceX = particles[j].x - particles[i].x;
                     double distanceY = particles[j].y - particles[i].y;
-                    double range = particles[i].range;
 
                     if (Math.Abs(distanceX) > range || Math.Abs(distanceY) > range)
                         continue;
