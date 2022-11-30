@@ -31,7 +31,11 @@ namespace fluid_simulation
         private const int drawType = 2;
         // 0: no blur
         // 1: blur
-        private const bool blur = false;
+        private const bool blur = true;
+
+        private static float[] blurring = { 1/9f, 1/9f, 1/9f,
+                             1/9f, 1/9f, 1/9f,
+                             1/9f, 1/9f, 1/9f };
 
         // If DrawStyle = 2
         private static int resolution_x = roundNextUp(25, WINDOW_WIDTH);
@@ -50,7 +54,7 @@ namespace fluid_simulation
         {
             Console.WriteLine("start");
 
-            Environments env = new Environments((int)Math.Pow(100, 2));
+            Environments env = new Environments((int)Math.Pow(50, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -308,11 +312,7 @@ namespace fluid_simulation
 
         static void blurWindow()
         {
-            float[] blurring = { 1/9f, 1/9f, 1/9f,
-                                 1/9f, 1/9f, 1/9f,
-                                 1/9f, 1/9f, 1/9f };
             int blurringsize = (int)Math.Sqrt((double)blurring.Length);
-
 
             for (int y = 0; y < WINDOW_HEIGHT; y++)
             {
@@ -331,9 +331,9 @@ namespace fluid_simulation
                             if ((x + blur_x) < 0 || (x + blur_x) >= WINDOW_WIDTH || (y + blur_y) < 0 || (y + blur_y) >= WINDOW_HEIGHT)
                                 continue;
                             int i = ((y + blur_y) * WINDOW_WIDTH + (x + blur_x)) * 4;
-                            
+                            int _1020 = RGBscaleto1020Color(new Color(windowBuffer[i], windowBuffer[i + 1], windowBuffer[i + 2]));
 
-                            blur_sum += (int)((windowBuffer[i] + windowBuffer[i + 1] + windowBuffer[i + 2] + windowBuffer[i + 2]) * blurring[(blur_y + blurringsize / 2) * blurringsize + (blur_x + blurringsize / 2)]);
+                            blur_sum += (int)(_1020 * blurring[(blur_y + blurringsize / 2) * blurringsize + (blur_x + blurringsize / 2)]);
                         }
                     }
 
@@ -364,19 +364,19 @@ namespace fluid_simulation
         static int RGBscaleto1020Color(Color color)
         {
             int colorshade = 0;
-            if ((int)color.B == 255)
+            if (color.B == 255)
             {
-                colorshade = (int)color.G;
-            } 
-            else if ((int)color.B < 255 && (int)color.G == 255)
-            {
-                colorshade = 510 - (int)color.B;
+                colorshade = color.G;
             }
-            else if ((int)color.R > 0 && (int)color.G == 255)
+            else if (color.B < 255 && color.G == 255 && color.B != 0)
             {
-                colorshade = 510 + (int)color.R;
+                colorshade = 510 - color.B;
             }
-            else if ((int)color.R == 255)
+            else if (color.R >= 0 && color.G == 255)
+            {
+                colorshade = 510 + color.R;
+            }
+            else if (color.R == 255)
             {
                 colorshade = 1020 - color.G;
             }
@@ -391,6 +391,20 @@ namespace fluid_simulation
                 x++;
             Console.WriteLine($"rounded up to {x}");
             return x;
+        }1 / sqrt(2π²) a² ℯ^((-(x² + y²)) / (2a²))
+
+        static int[] GaussCurvaMatrix(int size)
+        {
+            int[] matrix = new int[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    matrix[y * size + x] = 1;
+                }
+            }
+
+            return matrix;
         }
 
         static void OnClose(object sender, EventArgs e)
@@ -403,7 +417,6 @@ namespace fluid_simulation
 }
 
 /*
-/* Online C# Compiler and Editor */
 using System.IO;
 using System;
 
@@ -412,7 +425,7 @@ class Program
     static void Main()
     {
         Console.WriteLine("Hello, World!");
-        for (int i = 0; i < 1025; i++)
+        for (int i = 0; i < 1021; i++)
         {
             int[] a = _1020toRGBscaleColor(i);
             int b = RGBscaleto1020Color(a);
@@ -437,11 +450,11 @@ class Program
         {
             colorshade = color[1];
         }
-        else if (color[0] < 255 && color[1] == 255)
+        else if (color[0] < 255 && color[1] == 255 && color[0] != 0)
         {
             colorshade = 510 - color[0];
         }
-        else if (color[2] > 0 && color[1] == 255)
+        else if (color[2] >= 0 && color[1] == 255)
         {
             colorshade = 510 + color[2];
         }
@@ -451,5 +464,4 @@ class Program
         }
         return colorshade;
     }
-}
-
+}*/
