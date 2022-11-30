@@ -33,7 +33,7 @@ namespace fluid_simulation
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
                 {
-                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.4) + rng.NextDouble() * 0.00001, 1 / 100.0, 0);
+                    particles[y * (int)Math.Sqrt(particleAmount) + x] = new GasParticle(0 + (x / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 0 + (y / Math.Sqrt(particleAmount) * 0.1) + rng.NextDouble() * 0.00001, 1 / 100.0, 0);
                     //particles[y * (int)Math.Sqrt(particleAmount) + x].vx = rng.NextDouble()*0.01;
                     //particles[y * (int)Math.Sqrt(particleAmount) + x].vy = rng.NextDouble()*0.01;
                 }
@@ -81,10 +81,11 @@ namespace fluid_simulation
                         continue;
 
                     double dist = Math.Sqrt(x2_y2);
+                    double rdist = 1 / (dist + 0.000001);
 
                     //suuntavektorit
-                    double sx = distanceX / dist;
-                    double sy = distanceY / dist;
+                    double sx = distanceX * rdist;
+                    double sy = distanceY * rdist;
 
                     double f_xy = particles[i].interaction(dist);
 

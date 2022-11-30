@@ -20,15 +20,22 @@ namespace fluid_simulation
         public const int WINDOW_WIDTH = 500;
         public const int WINDOW_HEIGHT = 500;
 
-        // 1: draw all particles
+        // 1: draw all particles as positions
         // 2: draw attribute in resolution
-        private const int DrawStyle = 3;
+        // 3: draw all particles as areas of effect
+        private const int DrawStyle = 2;
 
         // If DrawStyle = 2
         // 1: particles in pixel
         // 2: average velocity in pixel
         private const int drawType = 2;
+        // 0: no blur
+        // 1: blur
+        private const bool blur = false;
 
+        // If DrawStyle = 2
+        private static int resolution_x = roundNextUp(25, WINDOW_WIDTH);
+        private static int resolution_y = roundNextUp(25, WINDOW_HEIGHT);
 
         public const int FPS_LIMIT = -1;
         public static long FRAMETIME = 1000 / FPS_LIMIT;
@@ -55,6 +62,10 @@ namespace fluid_simulation
 
             windowSprite = new Sprite(windowTexture);
 
+            window.Clear();
+            DrawWindow(env);
+            window.Display();
+
             try
             {
                 if (AcceleratorDevice.HasGPU)
@@ -77,7 +88,7 @@ namespace fluid_simulation
                 window.DispatchEvents();
 
                 env.Interact();
-                GPU.Run(env);
+                //GPU.Run(env);
                 //Console.WriteLine("calculated");
                 env.Move();
                 //Console.WriteLine("moved");
@@ -103,30 +114,26 @@ namespace fluid_simulation
 
         static void DrawWindow(Environments env)
         {
-            if (DrawStyle == 1)
+            windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+            switch (DrawStyle)
             {
-                windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                DrawParticles1(env);
-                windowTexture.Update(windowBuffer);
-                window.Draw(windowSprite);
+                case 1:
+                    DrawParticles1(env);
+                    break;
+                case 2:
+                    DrawParticles2(env);
+                    break;
+                case 3:
+                    DrawParticles3(env);
+                    break;
             }
-            else if (DrawStyle == 2)
+            if (blur)
             {
-                DrawParticles2(env);
+                blurWindow();
             }
-            else if (DrawStyle == 3)
-            {
-                windowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
-                DrawParticles3(env);
-                //DrawParticles1(env);
-                windowTexture.Update(windowBuffer);
-                window.Draw(windowSprite);
-
-                CircleShape circ = new CircleShape(2);
-                circ.Position = new Vector2f((float)(env.particles[58].x * WINDOW_WIDTH), (float)(env.particles[58].y * WINDOW_HEIGHT));
-                circ.FillColor = new Color(0xff, 0xff, 0xff);
-                window.Draw(circ);
-            }
+            DrawParticles1(env);
+            windowTexture.Update(windowBuffer);
+            window.Draw(windowSprite);
 
             //Console.WriteLine("drawn");
         }
@@ -165,9 +172,6 @@ namespace fluid_simulation
 
         static void DrawParticles2(Environments env)
         {
-            int resolution_x = 40;
-            int resolution_y = 40;
-
             int resolution_pixel_x = WINDOW_WIDTH / resolution_x;
             int resolution_pixel_y = WINDOW_HEIGHT / resolution_y;
 
@@ -181,10 +185,6 @@ namespace fluid_simulation
                 {
                     for (int x = 0; x < resolution_x; x++)
                     {
-                        RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
-                        square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
-                        //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
-
                         int squareAmount = 0;
                         foreach (GasParticle particle in env.particles)
                         {
@@ -201,11 +201,23 @@ namespace fluid_simulation
                             visibleAmount += 1;
                         }
 
-
                         int colorshade = (int)(1020 * (squareAmount >= colorContrast ? 1 : ((double)squareAmount / (double)colorContrast)));
 
-                        square.FillColor = _1020toRGBscaleColor(colorshade);
-                        window.Draw(square);
+                        for (int pixel_y = y * resolution_pixel_y; pixel_y < y * resolution_pixel_y + resolution_pixel_y; pixel_y++)
+                        {
+                            for (int pixel_x = x * resolution_pixel_x; pixel_x < x * resolution_pixel_x + resolution_pixel_x; pixel_x++)
+                            {
+
+                                int index = (pixel_y * WINDOW_WIDTH + pixel_x) * 4;
+
+                                Color color = _1020toRGBscaleColor(colorshade);
+
+                                windowBuffer[index] = color.R;
+                                windowBuffer[index + 1] = color.G;
+                                windowBuffer[index + 2] = color.B;
+                                windowBuffer[index + 3] = 255;
+                            }
+                        }
                     }
                 }
             }
@@ -218,11 +230,6 @@ namespace fluid_simulation
                 {
                     for (int x = 0; x < resolution_x; x++)
                     {
-
-
-                        RectangleShape square = new RectangleShape(new Vector2f(resolution_pixel_x, resolution_pixel_y));
-                        square.Position = new Vector2f(x * resolution_pixel_x, y * resolution_pixel_y);
-                        //square.setSize = new Vector2f(resolution_pixel_x, resolution_pixel_y);
 
                         int squareAmount = 0;
                         double averageSpeedSum = 0;
@@ -242,14 +249,22 @@ namespace fluid_simulation
                             visibleAmount += 1;
                         }
 
-                        
-                        /*if (squareAmount > 0)
-                            Console.WriteLine((double)averageSpeedSum / (double)squareAmount);*/
-
                         int colorshade = squareAmount > 0 ? (int)(1020 * ((double)averageSpeedSum / (double)squareAmount / colorContrast)) : 0;
 
-                        square.FillColor = _1020toRGBscaleColor(colorshade);
-                        window.Draw(square);
+                        for (int pixel_y = y * resolution_pixel_y; pixel_y < y * resolution_pixel_y + resolution_pixel_y; pixel_y++)
+                        {
+                            for (int pixel_x = x * resolution_pixel_x; pixel_x < x * resolution_pixel_x + resolution_pixel_x; pixel_x++)
+                            {
+                                int index = (pixel_y * WINDOW_WIDTH + pixel_x) * 4;
+
+                                Color color = _1020toRGBscaleColor(colorshade);
+
+                                windowBuffer[index] = color.R;
+                                windowBuffer[index + 1] = color.G;
+                                windowBuffer[index + 2] = color.B;
+                                windowBuffer[index + 3] = 255;
+                            }
+                        }
                     }
                 }
             }
@@ -291,12 +306,91 @@ namespace fluid_simulation
             });
         }
 
+        static void blurWindow()
+        {
+            float[] blurring = { 1/9f, 1/9f, 1/9f,
+                                 1/9f, 1/9f, 1/9f,
+                                 1/9f, 1/9f, 1/9f };
+            int blurringsize = (int)Math.Sqrt((double)blurring.Length);
+
+
+            for (int y = 0; y < WINDOW_HEIGHT; y++)
+            {
+                for (int x = 0; x < WINDOW_WIDTH; x++)
+                {
+                    if (x == 200 && y == 200)
+                    {
+                    }
+
+                    int blur_sum = 0;
+
+                    for (int blur_y = -blurringsize / 2; blur_y < blurringsize / 2 + 1; blur_y++)
+                    {
+                        for (int blur_x = -blurringsize / 2; blur_x < blurringsize / 2 + 1; blur_x++)
+                        {
+                            if ((x + blur_x) < 0 || (x + blur_x) >= WINDOW_WIDTH || (y + blur_y) < 0 || (y + blur_y) >= WINDOW_HEIGHT)
+                                continue;
+                            int i = ((y + blur_y) * WINDOW_WIDTH + (x + blur_x)) * 4;
+                            
+
+                            blur_sum += (int)((windowBuffer[i] + windowBuffer[i + 1] + windowBuffer[i + 2] + windowBuffer[i + 2]) * blurring[(blur_y + blurringsize / 2) * blurringsize + (blur_x + blurringsize / 2)]);
+                        }
+                    }
+
+
+                    int index = (y * WINDOW_WIDTH + x) * 4;
+                    Color colorRGB = _1020toRGBscaleColor(blur_sum);
+
+                    windowBuffer[index] = colorRGB.R;
+                    windowBuffer[index + 1] = colorRGB.G;
+                    windowBuffer[index + 2] = colorRGB.B;
+                    windowBuffer[index + 3] = 255;
+                }
+            }
+        }
+
         static Color _1020toRGBscaleColor(int colorshade)
         {
-            int Red = colorshade <= 510 ? 0 : (colorshade >= 765 ? 255 : colorshade - 510);
-            int Green = colorshade <= 255 ? colorshade : (colorshade < 765 ? 255 : 255 - (colorshade - 765));
-            int Blue = colorshade <= 255 ? 255 : (255 - (colorshade - 255) < 0 ? 0 : 255 - (colorshade - 255));
+            if (colorshade > 510)
+            {
+
+            }
+
+            int Red = colorshade <= 510 ? 0 : (colorshade > 765 ? 255 : colorshade - 510);
+            int Green = colorshade <= 255 ? colorshade : (colorshade < 765 ? 255 : 1020 - colorshade);
+            int Blue = colorshade <= 255 ? 255 : (510 > colorshade ? 510 - colorshade : 0);
             return new Color((byte)Red, (byte)Green, (byte)Blue);
+        }
+        static int RGBscaleto1020Color(Color color)
+        {
+            int colorshade = 0;
+            if ((int)color.B == 255)
+            {
+                colorshade = (int)color.G;
+            } 
+            else if ((int)color.B < 255 && (int)color.G == 255)
+            {
+                colorshade = 510 - (int)color.B;
+            }
+            else if ((int)color.R > 0 && (int)color.G == 255)
+            {
+                colorshade = 510 + (int)color.R;
+            }
+            else if ((int)color.R == 255)
+            {
+                colorshade = 1020 - color.G;
+            }
+            return colorshade;
+        }
+
+        static int roundNextUp(int x, int res)
+        {
+            if (res % x == 0)
+                return x;
+            while (res % x != 0)
+                x++;
+            Console.WriteLine($"rounded up to {x}");
+            return x;
         }
 
         static void OnClose(object sender, EventArgs e)
@@ -307,3 +401,55 @@ namespace fluid_simulation
         }
     }
 }
+
+/*
+/* Online C# Compiler and Editor */
+using System.IO;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine("Hello, World!");
+        for (int i = 0; i < 1025; i++)
+        {
+            int[] a = _1020toRGBscaleColor(i);
+            int b = RGBscaleto1020Color(a);
+            int[] c = _1020toRGBscaleColor(b);
+            Console.WriteLine($"{c[0]}\t{c[1]}\t{c[2]}");
+        }
+    }
+
+    static int[] _1020toRGBscaleColor(int colorshade)
+    {
+        int[] a = new int[3];
+        a[2] = colorshade <= 510 ? 0 : (colorshade > 765 ? 255 : colorshade - 510);
+        a[1] = colorshade <= 255 ? colorshade : (colorshade < 765 ? 255 : 1020 - colorshade);
+        a[0] = colorshade <= 255 ? 255 : (510 > colorshade ? 510 - colorshade : 0);
+        return a;
+    }
+
+    static int RGBscaleto1020Color(int[] color)
+    {
+        int colorshade = 0;
+        if (color[0] == 255)
+        {
+            colorshade = color[1];
+        }
+        else if (color[0] < 255 && color[1] == 255)
+        {
+            colorshade = 510 - color[0];
+        }
+        else if (color[2] > 0 && color[1] == 255)
+        {
+            colorshade = 510 + color[2];
+        }
+        else if (color[2] == 255)
+        {
+            colorshade = 1020 - color[1];
+        }
+        return colorshade;
+    }
+}
+

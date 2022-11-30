@@ -96,7 +96,7 @@ namespace abc
             //Stopwatch sw1 = new Stopwatch();
             //sw1.Start();
 
-            queue.Execute(kernel, null, new long[] { env.particles.Length, env.particles.Length }, null, eventList);
+            queue.Execute(kernel, null, new long[] { env.particles.Length }, null, eventList);
 
             queue.ReadFromBuffer(z, ref output_Z, false, eventList);
 

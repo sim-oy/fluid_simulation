@@ -20,26 +20,36 @@ kernel void Interact(global float* input_X, int size_X, float environmentFrictio
 
     for (int j = 0; j < size_X; j++)
     {
+        //printf("%d, %d\n", i, j);
+
         if (i == j)
             continue;
 
         float distanceX = input_X[j * 5] - xi;
         float distanceY = input_X[j * 5 + 1] - yi;
         
-        if (abs(distanceX) > range || abs(distanceY) > range)
+        //printf("%d, %d, %d, %f, %f\n", i, j, fabs(distanceX) > range || fabs(distanceY) > range, fabs(distanceX), fabs(distanceY));
+        if (fabs(distanceX) > range || fabs(distanceY) > range) {
+            //printf("aa: %f, %f, %f, %f\n", input_X[j * 5], input_X[j * 5 + 1], xi, yi);
             continue;
+        }
+            
 
         float x2_y2 = distanceX * distanceX + distanceY * distanceY;
-
-        if (x2_y2 >= range * range)
+        
+        if (x2_y2 >= range * range) {
+            printf("%d, %0.38f, %0.38f\n", x2_y2 >= range * range, x2_y2, range * range);
             continue;
-
+        }
+        
         float dist = sqrt(x2_y2);
 
-        //suuntavektorit
-        float sx = distanceX / dist;
-        float sy = distanceY / dist;
+        float rdist = 1 / (dist + 0.000001);
 
+        //suuntavektorit
+        float sx = distanceX * rdist;
+        float sy = distanceY * rdist;
+        
         double f_xy = f1(dist, range);
 
         float timestep = 0.001;
@@ -54,8 +64,8 @@ kernel void Interact(global float* input_X, int size_X, float environmentFrictio
         particles[i].vy *= particleCollisionFriction;*/
     }
 
-    output_Z[i * 2] += input_X[i * 5 + 2] + sumX;
-    output_Z[i * 2 + 1] += input_X[i * 5 + 3] + sumY;
+    output_Z[i * 2] += sumX;
+    output_Z[i * 2 + 1] += sumY;
 
     // gravity
     //particles[i].vy += 0.0001;
@@ -65,13 +75,13 @@ kernel void Interact(global float* input_X, int size_X, float environmentFrictio
     float collisionFriction = 1;
 
     if (xi < 0)
-        output_Z[i * 2] = abs(xi) * collisionFriction;
+        output_Z[i * 2] = fabs(output_Z[i * 2]) * collisionFriction;
     else if (xi > 1.0)
-        output_Z[i * 2] = -abs(xi) * collisionFriction;
+        output_Z[i * 2] = -fabs(output_Z[i * 2]) * collisionFriction;
     else if (yi < 0)
-        output_Z[i * 2 + 1] = abs(yi) * collisionFriction;
+        output_Z[i * 2 + 1] = fabs(output_Z[i * 2 + 1]) * collisionFriction;
     else if (yi > 1.0)
-        output_Z[i * 2 + 1] = -abs(yi) * collisionFriction;
+        output_Z[i * 2 + 1] = -fabs(output_Z[i * 2 + 1]) * collisionFriction;
 
     output_Z[i * 2] *= environmentFriction;
     output_Z[i * 2 + 1] *= environmentFriction;
