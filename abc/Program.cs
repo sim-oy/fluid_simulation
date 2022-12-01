@@ -12,6 +12,8 @@ using System.Diagnostics;
 using System.Reflection;
 using abc;
 using OpenCL;
+using System.Linq;
+using System.Drawing;
 
 namespace fluid_simulation
 {
@@ -23,7 +25,7 @@ namespace fluid_simulation
         // 1: draw all particles as positions
         // 2: draw attribute in resolution
         // 3: draw all particles as areas of effect
-        private const int DrawStyle = 2;
+        private const int DrawStyle = 1;
 
         // If DrawStyle = 2
         // 1: particles in pixel
@@ -56,7 +58,7 @@ namespace fluid_simulation
         {
             Console.WriteLine("start");
 
-            Environments env = new Environments((int)Math.Pow(100, 2));
+            Environments env = new Environments((int)Math.Pow(50, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -137,7 +139,6 @@ namespace fluid_simulation
             {
                 blurWindow();
             }
-            DrawParticles1(env);
             windowTexture.Update(windowBuffer);
             window.Draw(windowSprite);
 
@@ -314,6 +315,8 @@ namespace fluid_simulation
 
         static void blurWindow()
         {
+            byte[] newwindowBuffer = new byte[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
+
             int blurringsize = (int)Math.Sqrt((double)blurring.Length);
 
             for (int y = 0; y < WINDOW_HEIGHT; y++)
@@ -343,12 +346,14 @@ namespace fluid_simulation
                     int index = (y * WINDOW_WIDTH + x) * 4;
                     Color colorRGB = _1020toRGBscaleColor(blur_sum);
 
-                    windowBuffer[index] = colorRGB.R;
-                    windowBuffer[index + 1] = colorRGB.G;
-                    windowBuffer[index + 2] = colorRGB.B;
-                    windowBuffer[index + 3] = 255;
+                    newwindowBuffer[index] = colorRGB.R;
+                    newwindowBuffer[index + 1] = colorRGB.G;
+                    newwindowBuffer[index + 2] = colorRGB.B;
+                    newwindowBuffer[index + 3] = 255;
                 }
             }
+
+            newwindowBuffer.CopyTo(windowBuffer, 0);
         }
 
         static Color _1020toRGBscaleColor(int colorshade)
@@ -407,15 +412,16 @@ namespace fluid_simulation
             double[] matrix = new double[size * size];
             for (int y = -size / 2; y < size / 2 + 1; y++)
             {
-                for (int x = -size / 2; x < size / 2 + 1; y++)
+                for (int x = -size / 2; x < size / 2 + 1; x++)
                 {
-                    Console.WriteLine(x + size / 2);
-                    Console.WriteLine(y + size / 2);
-                    Console.WriteLine((y + size / 2) * size + (x + size / 2));
-                    matrix[(y + size / 2) * size + (x + size / 2)] = f((double)x, (double)y);
+                    //Console.WriteLine($"{((double)(size / 2 + 1) * 0.5)}  a");
+                    matrix[(y + size / 2) * size + (x + size / 2)] = f((double)x / ((double)(size / 2 + 1) * 0.5), (double)y / ((double)(size / 2 + 1) * 0.5));
+                    Console.Write($"{Math.Round(matrix[(y + size / 2) * size + (x + size / 2)], 4)}\t");
                 }
+                Console.Write("\n");
             }
-            
+            Console.WriteLine($"{matrix.Sum()}");
+
             /*
             double[] referencematrix = new double[25] {
             0.00296902, 0.0133062, 0.0219382, 0.0133062, .00296902,
@@ -491,3 +497,22 @@ class Program
         return colorshade;
     }
 }*/
+
+size = 9
+am = 0
+
+strg = "solve(x*(f4(0,0)"
+
+for i in range(size // 2 + 1):
+    for j in range(i, size // 2 + 1):
+        #print(i, i)
+        a = 0
+        if i + j == 0:
+            continue
+        elif(i == j) or(i == 0 or j == 0):
+            a = 4
+        else:
+            a = 8
+        strg += f"+{a}*f4({i},{j})"
+strg += ")=1,x)"
+print(strg)
