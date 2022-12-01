@@ -33,9 +33,11 @@ namespace fluid_simulation
         // 1: blur
         private const bool blur = true;
 
-        private static float[] blurring = { 1/9f, 1/9f, 1/9f,
+        /*private static double[] blurring = { 1/9f, 1/9f, 1/9f,
                              1/9f, 1/9f, 1/9f,
-                             1/9f, 1/9f, 1/9f };
+                             1/9f, 1/9f, 1/9f };*/
+
+        private static double[] blurring = GaussCurvaMatrix(3);
 
         // If DrawStyle = 2
         private static int resolution_x = roundNextUp(25, WINDOW_WIDTH);
@@ -54,7 +56,7 @@ namespace fluid_simulation
         {
             Console.WriteLine("start");
 
-            Environments env = new Environments((int)Math.Pow(50, 2));
+            Environments env = new Environments((int)Math.Pow(100, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -336,7 +338,7 @@ namespace fluid_simulation
                             blur_sum += (int)(_1020 * blurring[(blur_y + blurringsize / 2) * blurringsize + (blur_x + blurringsize / 2)]);
                         }
                     }
-
+                    //f[x, y] = exp(-x * x - y * y); (f(-1, -1) + f(0, -1) + f(1, -1) + f(-1, 0) + f(0, 0) + f(1, 0) + f(-1, 1) + f(0, 1) + f(1, 1)) * n = 1
 
                     int index = (y * WINDOW_WIDTH + x) * 4;
                     Color colorRGB = _1020toRGBscaleColor(blur_sum);
@@ -391,20 +393,44 @@ namespace fluid_simulation
                 x++;
             Console.WriteLine($"rounded up to {x}");
             return x;
-        }1 / sqrt(2π²) a² ℯ^((-(x² + y²)) / (2a²))
+        }
 
-        static int[] GaussCurvaMatrix(int size)
+        static double[] GaussCurvaMatrix(int size)
         {
-            int[] matrix = new int[size * size];
-            for (int y = 0; y < size; y++)
+            double[] referencematrix = new double[25] {
+            0.00296902, 0.0133062, 0.0219382, 0.0133062, .00296902,
+            0.0133062, 0.0596343, 0.0983203, 0.0596343, 0.0133062,
+            0.0219382, 0.0983203, 0.162103, 0.0983203, 0.0219382,
+            0.0133062, 0.0596343, 0.0983203, 0.0596343, 0.0133062,
+            0.00296902, 0.0133062, 0.0219382, 0.0133062, 0.00296902};
+
+            double[] matrix = new double[size * size];
+            for (int y = -size / 2; y < size / 2 + 1; y++)
             {
-                for (int x = 0; x < size; x++)
+                for (int x = -size / 2; x < size / 2 + 1; y++)
                 {
-                    matrix[y * size + x] = 1;
+                    Console.WriteLine(x + size / 2);
+                    Console.WriteLine(y + size / 2);
+                    Console.WriteLine((y + size / 2) * size + (x + size / 2));
+                    matrix[(y + size / 2) * size + (x + size / 2)] = f((double)x, (double)y);
                 }
             }
+            
+            /*
+            double[] referencematrix = new double[25] {
+            0.00296902, 0.0133062, 0.0219382, 0.0133062, .00296902,
+            0.0133062, 0.0596343, 0.0983203, 0.0596343, 0.0133062,
+            0.0219382, 0.0983203, 0.162103, 0.0983203, 0.0219382,
+            0.0133062, 0.0596343, 0.0983203, 0.0596343, 0.0133062,
+            0.00296902, 0.0133062, 0.0219382, 0.0133062, 0.00296902};
+            */
 
             return matrix;
+
+            static double f(double x, double y)
+            {
+                return Math.Exp(-x * x - y * y) * (Math.Exp(2) / Math.Pow(2 + Math.Exp(1), 2));
+            }
         }
 
         static void OnClose(object sender, EventArgs e)
