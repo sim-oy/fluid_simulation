@@ -11,8 +11,6 @@ namespace fluid_simulation
 
         public Environments(int particleAmount)
         {
-
-            //particles = new GasParticle[particleAmount + Program.WINDOW_WIDTH * Walldensity * 2 + Program.WINDOW_HEIGHT * Walldensity * 2 + 4];
             particles = new GasParticle[particleAmount];
 
             Random rng = new Random();
@@ -28,7 +26,7 @@ namespace fluid_simulation
                 }
             }
             */
-
+            /*
             for (int y = 0; y < Math.Sqrt(particleAmount); y++)
             {
                 for (int x = 0; x < Math.Sqrt(particleAmount); x++)
@@ -38,13 +36,14 @@ namespace fluid_simulation
                     //particles[y * (int)Math.Sqrt(particleAmount) + x].vy = rng.NextDouble()*0.01;
                 }
             }
-
-            /*
-            for (int i = 0; i < particleAmount; i++)
-            {
-                particles[i] = new GasParticle(rng.NextDouble(), rng.NextDouble(), 200);
-            }
             */
+            
+            for (int i = 0; i < particleAmount; i += 2)
+            {
+                particles[i] = new GasParticle(rng.NextDouble() * 0.1, rng.NextDouble() * 0.005, 1 / 100.0, 0);
+                particles[i + 1] = new GasParticle(rng.NextDouble() * 0.005, rng.NextDouble() * 0.1, 1 / 100.0, 0);
+            }
+            
         }
 
         public void Move()

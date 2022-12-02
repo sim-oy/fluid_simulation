@@ -36,7 +36,7 @@ namespace fluid_simulation
         private const bool blur = true;
 
         // only odd numbers
-        private static double[] blurring = GaussCurvaMatrix(9);
+        private static double[] blurring = GaussCurvaMatrix(11);
 
         // If DrawStyle = 2
         private static int resolution_x = roundNextUp(25, WINDOW_WIDTH);
@@ -55,7 +55,7 @@ namespace fluid_simulation
         {
             Console.WriteLine("start");
 
-            Environments env = new Environments((int)Math.Pow(115, 2));
+            Environments env = new Environments((int)Math.Pow(50, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -455,7 +455,7 @@ namespace fluid_simulation
             }
             static double realf(double x, double y, double _sum, int size)
             {
-                return f(x, y, size) * 1 / _sum * 5;
+                return f(x, y, size) * 1 / _sum * 10;
             }
         }
 
