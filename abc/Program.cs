@@ -35,11 +35,8 @@ namespace fluid_simulation
         // 1: blur
         private const bool blur = true;
 
-        /*private static double[] blurring = { 1/9f, 1/9f, 1/9f,
-                             1/9f, 1/9f, 1/9f,
-                             1/9f, 1/9f, 1/9f };*/
-
-        private static double[] blurring = GaussCurvaMatrix(3);
+        // only odd numbers
+        private static double[] blurring = GaussCurvaMatrix(9);
 
         // If DrawStyle = 2
         private static int resolution_x = roundNextUp(25, WINDOW_WIDTH);
@@ -58,7 +55,7 @@ namespace fluid_simulation
         {
             Console.WriteLine("start");
 
-            Environments env = new Environments((int)Math.Pow(50, 2));
+            Environments env = new Environments((int)Math.Pow(115, 2));
 
             window = new RenderWindow(new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Computational fluid dynamics", Styles.Default);
             window.Closed += new EventHandler(OnClose);
@@ -319,14 +316,11 @@ namespace fluid_simulation
 
             int blurringsize = (int)Math.Sqrt((double)blurring.Length);
 
-            for (int y = 0; y < WINDOW_HEIGHT; y++)
+            //for (int y = 0; y < WINDOW_HEIGHT; y++)
+            Parallel.For(0, WINDOW_HEIGHT, y =>
             {
                 for (int x = 0; x < WINDOW_WIDTH; x++)
                 {
-                    if (x == 200 && y == 200)
-                    {
-                    }
-
                     int blur_sum = 0;
 
                     for (int blur_y = -blurringsize / 2; blur_y < blurringsize / 2 + 1; blur_y++)
@@ -344,6 +338,7 @@ namespace fluid_simulation
                     //f[x, y] = exp(-x * x - y * y); (f(-1, -1) + f(0, -1) + f(1, -1) + f(-1, 0) + f(0, 0) + f(1, 0) + f(-1, 1) + f(0, 1) + f(1, 1)) * n = 1
 
                     int index = (y * WINDOW_WIDTH + x) * 4;
+
                     Color colorRGB = _1020toRGBscaleColor(blur_sum);
 
                     newwindowBuffer[index] = colorRGB.R;
@@ -351,17 +346,17 @@ namespace fluid_simulation
                     newwindowBuffer[index + 2] = colorRGB.B;
                     newwindowBuffer[index + 3] = 255;
                 }
-            }
+            });
 
             newwindowBuffer.CopyTo(windowBuffer, 0);
         }
 
+
+
         static Color _1020toRGBscaleColor(int colorshade)
         {
-            if (colorshade > 510)
-            {
-
-            }
+            if (colorshade > 1020)
+                return new Color((byte)255, (byte)0, (byte)0);
 
             int Red = colorshade <= 510 ? 0 : (colorshade > 765 ? 255 : colorshade - 510);
             int Green = colorshade <= 255 ? colorshade : (colorshade < 765 ? 255 : 1020 - colorshade);
@@ -409,16 +404,37 @@ namespace fluid_simulation
             0.0133062, 0.0596343, 0.0983203, 0.0596343, 0.0133062,
             0.00296902, 0.0133062, 0.0219382, 0.0133062, 0.00296902};
 
+            double _sum = f(0, 0, size);
+            for (int i = 0; i < size / 2 + 1; i++)
+            {
+                for (int j = i; j < size / 2 + 1; j++)
+                {
+                    //Console.WriteLine($"{i}, {j}");
+                    if (i + j == 0)
+                    {
+                        continue;
+                    }
+                    else if ((i == j) || (i == 0 || j == 0))
+                    {
+                        _sum += 4 * f(i, j, size);
+                    }
+                    else
+                    {
+                        _sum += 8 * f(i, j, size);
+                    }
+                }
+            }
+
             double[] matrix = new double[size * size];
             for (int y = -size / 2; y < size / 2 + 1; y++)
             {
                 for (int x = -size / 2; x < size / 2 + 1; x++)
                 {
                     //Console.WriteLine($"{((double)(size / 2 + 1) * 0.5)}  a");
-                    matrix[(y + size / 2) * size + (x + size / 2)] = f((double)x / ((double)(size / 2 + 1) * 0.5), (double)y / ((double)(size / 2 + 1) * 0.5));
-                    Console.Write($"{Math.Round(matrix[(y + size / 2) * size + (x + size / 2)], 4)}\t");
+                    matrix[(y + size / 2) * size + (x + size / 2)] = realf((double)x, (double)y, _sum, size);
+                    //Console.Write($"{Math.Round(matrix[(y + size / 2) * size + (x + size / 2)], 4)}\t");
                 }
-                Console.Write("\n");
+                //Console.Write("\n");
             }
             Console.WriteLine($"{matrix.Sum()}");
 
@@ -433,9 +449,13 @@ namespace fluid_simulation
 
             return matrix;
 
-            static double f(double x, double y)
+            static double f(double x, double y, int size)
             {
-                return Math.Exp(-x * x - y * y) * (Math.Exp(2) / Math.Pow(2 + Math.Exp(1), 2));
+                return Math.Exp(-(x / ((double)(size / 2 + 1) * 0.5)) * (x / ((double)(size / 2 + 1) * 0.5)) - (y / ((double)(size / 2 + 1) * 0.5)) * (y / ((double)(size / 2 + 1) * 0.5)));
+            }
+            static double realf(double x, double y, double _sum, int size)
+            {
+                return f(x, y, size) * 1 / _sum * 5;
             }
         }
 
@@ -497,22 +517,3 @@ class Program
         return colorshade;
     }
 }*/
-
-size = 9
-am = 0
-
-strg = "solve(x*(f4(0,0)"
-
-for i in range(size // 2 + 1):
-    for j in range(i, size // 2 + 1):
-        #print(i, i)
-        a = 0
-        if i + j == 0:
-            continue
-        elif(i == j) or(i == 0 or j == 0):
-            a = 4
-        else:
-            a = 8
-        strg += f"+{a}*f4({i},{j})"
-strg += ")=1,x)"
-print(strg)

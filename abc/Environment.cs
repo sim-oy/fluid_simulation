@@ -5,7 +5,7 @@ namespace fluid_simulation
 {
     class Environments
     {
-        public const double environmentFriction = 1;
+        public const double environmentFriction = 0.9998;
 
         public GasParticle[] particles;
 
@@ -99,7 +99,7 @@ namespace fluid_simulation
                         continue;
                     */
 
-                    //double particleCollisionFriction = 0.998;
+                    //double particleCollisionFriction = 0.99995;
                     double particleCollisionFriction = 1;
                     particles[i].vx *= particleCollisionFriction;
                     particles[i].vy *= particleCollisionFriction;
@@ -112,8 +112,8 @@ namespace fluid_simulation
                 //particles[i].vy += 0.0001;
 
                 // boundary
-                //double collisionFriction = 0.5;
-                double collisionFriction = 1;
+                double collisionFriction = 0.5;
+                //double collisionFriction = 1;
 
                 if (particles[i].x < 0)
                     particles[i].vx = Math.Abs(particles[i].vx) * collisionFriction;
